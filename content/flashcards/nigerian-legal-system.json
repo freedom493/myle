@@ -1,0 +1,19 @@
+{
+  "id": "nigerian-legal-system",
+  "name": "Nigerian legal system",
+  "description": "Key concepts and institutions in the Nigerian legal framework.",
+  "cards": [
+    {
+      "term": "Federalism",
+      "definition": "A system where power is divided between the national government and state governments."
+    },
+    {
+      "term": "Supreme Court",
+      "definition": "The highest court in Nigeria, with final appellate jurisdiction over all legal matters."
+    },
+    {
+      "term": "Constitution",
+      "definition": "The supreme law of the land that establishes government structure and citizens' rights."
+    }
+  ]
+}

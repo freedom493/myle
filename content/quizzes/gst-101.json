@@ -1,0 +1,29 @@
+{
+  "id": "gst-101",
+  "name": "GST 101 — Use of English",
+  "description": "Test your knowledge of GST 101 topics",
+  "course": "GST 101",
+  "level": "100L",
+  "timeLimit": 600,
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Which of the following is NOT a type of essay?",
+      "options": ["Expository", "Narrative", "Illustrative", "Argumentative"],
+      "correctIndex": 2,
+      "explanation": "The main types of essays are expository, narrative, descriptive, and argumentative. 'Illustrative' is not a standard essay type."
+    },
+    {
+      "id": "q2",
+      "question": "The topic sentence of a paragraph should appear:",
+      "options": [
+        "Only at the end of the paragraph",
+        "Only in the middle",
+        "Usually at the beginning",
+        "In a separate paragraph"
+      ],
+      "correctIndex": 2,
+      "explanation": "The topic sentence usually appears at the beginning of a paragraph and introduces the main idea."
+    }
+  ]
+}
