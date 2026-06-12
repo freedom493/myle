@@ -15,9 +15,9 @@ export function Footer() {
             <p className="max-w-xs text-sm leading-6 text-brand-muted">
               Fast, guest-first study tools designed specifically for Nigerian campus routines. Practice quizzes, review flashcard decks, and climb the leaderboards.
             </p>
-            <p className="text-xs text-brand-muted/70">
+            {/*<p className="text-xs text-brand-muted/70">
               Loved by students at UNN, UNILAG, ABU, UI, OAU, UNIBEN, LASU, and more.
-            </p>
+            </p>*/}
           </div>
 
           <div>

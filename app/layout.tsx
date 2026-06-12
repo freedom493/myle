@@ -3,6 +3,7 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import WarningCard from "@/components/layout/Warning";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,6 +42,8 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1 relative z-10">{children}</main>
         <Footer />
+
+        {/*<WarningCard />*/}
       </body>
     </html>
   );

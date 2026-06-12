@@ -1,5 +1,5 @@
 import Link from "next/link";
-import FlashcardsComponent from "@/components/layout/flashcards";
+import FlashcardsComponent from "@/components/layout/Flashcards";
 
 interface DeckPageProps {
   params: Promise<{
