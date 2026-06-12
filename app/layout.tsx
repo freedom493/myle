@@ -28,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="en-NG"
       className={`${inter.variable} ${poppins.variable} h-full antialiased`}
       data-scroll-behavior="smooth"
     >
