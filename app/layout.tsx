@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "MYLE — Study hub for Nigerian university students",
   description:
     "Guest-first study tools, quizzes, flashcards, and leaderboard for Nigerian university students.",
+  verification: {
+    google: "oTzkE0PYdRbIsuuNLDmshQafwLhaFPoUHc_QJpZF_oY",
+  },
 };
 
 export default function RootLayout({
