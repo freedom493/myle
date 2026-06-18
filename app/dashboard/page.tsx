@@ -1,7 +1,13 @@
+'use client';
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ClipboardList, Trophy, Flame, CheckCircle, Sparkles } from "lucide-react";
+import { BookOpen, ClipboardList, Trophy, Flame, CheckCircle, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getStreak } from "@/lib/localStorage";
+import { useAuth } from "@/hooks/useAuth";
+import { createClient } from "@/lib/supabase/client";
 
 const tools = [
   {
@@ -25,6 +31,85 @@ const tools = [
 ];
 
 export default function DashboardPage() {
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+  
+  const [displayName, setDisplayName] = useState<string>("Guest Learner");
+  const [streak, setStreak] = useState<number>(0);
+  const [quizzesPassed, setQuizzesPassed] = useState<number>(0);
+  const [averageScore, setAverageScore] = useState<number>(0);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    // 1. Get streak from localStorage
+    setStreak(getStreak());
+
+    // 2. Fetch stats
+    async function fetchStats() {
+      setLoadingStats(true);
+      
+      if (isAuthenticated && user) {
+        const supabase = createClient();
+        try {
+          // Fetch display name from profiles
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('display_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (profileData?.display_name) {
+            setDisplayName(profileData.display_name);
+          }
+
+          // Fetch scores to compute dynamic stats
+          const { data: scoresData } = await supabase
+            .from('quiz_scores')
+            .select('percentage');
+
+          if (scoresData && scoresData.length > 0) {
+            const total = scoresData.length;
+            const passed = scoresData.filter(s => Number(s.percentage) >= 50).length;
+            const sum = scoresData.reduce((acc, curr) => acc + Number(curr.percentage), 0);
+            
+            setQuizzesPassed(passed);
+            setAverageScore(Math.round(sum / total));
+          }
+        } catch (err) {
+          console.error("Error fetching live dashboard stats:", err);
+        }
+      } else {
+        // Guest user stats from localStorage
+        try {
+          const scores = JSON.parse(localStorage.getItem('myle_best_scores') || '{}');
+          const percentages = Object.values(scores) as number[];
+          if (percentages.length > 0) {
+            const passed = percentages.filter(p => p >= 50).length;
+            const sum = percentages.reduce((acc, curr) => acc + curr, 0);
+            
+            setQuizzesPassed(passed);
+            setAverageScore(Math.round(sum / percentages.length));
+          }
+        } catch (err) {
+          console.error("Error parsing local best scores:", err);
+        }
+      }
+      setLoadingStats(false);
+    }
+
+    if (!authLoading) {
+      fetchStats();
+    }
+  }, [isAuthenticated, user, authLoading]);
+
+  if (authLoading || loadingStats) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <Loader2 className="h-8 w-8 text-brand-indigo animate-spin" />
+        <p className="text-sm text-brand-muted font-semibold">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-16 space-y-12">
       
@@ -33,7 +118,9 @@ export default function DashboardPage() {
         <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-lime/20 text-brand-indigo rounded-md w-fit block">
           Welcome back
         </span>
-        <h1 className="font-heading text-4xl font-extrabold text-brand-indigo">Your Study Dashboard</h1>
+        <h1 className="font-heading text-4xl font-extrabold text-brand-indigo">
+          Hello, {displayName}!
+        </h1>
         <p className="max-w-2xl text-base leading-relaxed text-brand-muted">
           Access your study decks, practice exams, and track your campus rank. Work online or study as a guest without friction.
         </p>
@@ -47,7 +134,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Study Streak</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">4 Days</p>
+            <p className="text-2xl font-black text-brand-indigo mt-0.5">{streak} Days</p>
           </div>
         </div>
 
@@ -57,7 +144,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Quizzes Passed</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">6 / 8</p>
+            <p className="text-2xl font-black text-brand-indigo mt-0.5">{quizzesPassed}</p>
           </div>
         </div>
 
@@ -67,7 +154,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Average Score</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">88%</p>
+            <p className="text-2xl font-black text-brand-indigo mt-0.5">{averageScore}%</p>
           </div>
         </div>
       </section>

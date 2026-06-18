@@ -43,7 +43,7 @@ export default function RootLayout({
         <main className="flex-1 relative z-10">{children}</main>
         <Footer />
 
-        {/*<WarningCard />*/}
+        <WarningCard />
       </body>
     </html>
   );

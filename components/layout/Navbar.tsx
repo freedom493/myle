@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MenuIcon, X } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -16,11 +17,11 @@ const navLinks = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
-  const pathname = usePathname(); // Tracks current page for active styles if needed
+  const pathname = usePathname();
+  const { isAuthenticated, loading } = useAuth();
 
   const toggleMenu = () => setOpen(prev => !prev);
 
-  // Animation variants for the mobile menu container
   const menuVariants = {
     hidden: { opacity: 0, y: -15 },
     visible: { 
@@ -39,11 +40,14 @@ export function Navbar() {
     }
   } as const;
 
-  // Animation variants for mobile link items cascading down
   const itemVariants = {
     hidden: { opacity: 0, x: -10 },
     visible: { opacity: 1, x: 0 }
   };
+
+  const activeLinks = isAuthenticated 
+    ? [...navLinks, { href: "/profile", label: "Profile" }] 
+    : navLinks;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-brand-indigo/5 md:bg-brand-surface/80 bg-brand-surface backdrop-blur-md">
@@ -63,7 +67,7 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex md:items-center md:gap-2 md:text-sm md:font-semibold md:text-brand-muted">
-          {navLinks.map((link) => {
+          {activeLinks.map((link) => {
             const isHovered = hoveredPath === link.href;
             return (
               <Link
@@ -88,9 +92,17 @@ export function Navbar() {
             );
           })}
           
-          <Link href="/auth/login" className="ml-4 rounded-full border border-brand-indigo/10 bg-brand-indigo/5 px-5 py-2 text-brand-indigo transition-all hover:bg-brand-indigo hover:text-white hover:shadow-md hover:shadow-brand-indigo/10">
-            Log in
-          </Link>
+          {!loading && (
+            isAuthenticated ? (
+              <Link href="/profile" className="ml-4 rounded-full border border-brand-indigo bg-brand-indigo px-5 py-2 text-white transition-all hover:bg-brand-indigo/90 hover:shadow-md hover:shadow-brand-indigo/10">
+                Profile
+              </Link>
+            ) : (
+              <Link href="/auth/login" className="ml-4 rounded-full border border-brand-indigo/10 bg-brand-indigo/5 px-5 py-2 text-brand-indigo transition-all hover:bg-brand-indigo hover:text-white hover:shadow-md hover:shadow-brand-indigo/10">
+                Log in
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Mobile menu toggle button */}
@@ -114,7 +126,7 @@ export function Navbar() {
             exit="exit"
             className="absolute top-full left-0 w-full overflow-x-auto z-50 border-b border-brand-indigo/5 bg-brand-surface backdrop-blur-md flex flex-col gap-5 px-6 py-8 md:hidden"
           >
-            {navLinks.map((link) => (
+            {activeLinks.map((link) => (
               <motion.div key={link.href} variants={itemVariants}>
                 <Link 
                   href={link.href} 
@@ -126,14 +138,24 @@ export function Navbar() {
               </motion.div>
             ))}
             
-            <motion.div variants={itemVariants} className="flex justify-between pt-5 mt-50 border-t gap-5 border-brand-indigo/10">
-              <Link href="/auth/login" onClick={() => setOpen(false)} className="rounded-full border border-brand-indigo/10 bg-brand-indigo/5 px-5 py-2 text-center font-semibold text-brand-indigo transition-all hover:bg-brand-indigo hover:text-white w-50">
-                Log in
-              </Link>
-              <Link href="/auth/signup" onClick={() => setOpen(false)} className="rounded-full border border-brand-indigo/10 px-5 py-2 text-center font-semibold text-[brand-text] transition-all bg-brand-indigo hover:bg-brand-indigo/30 hover:text-white w-50">
-                Sign up
-              </Link>
-            </motion.div>
+            {!loading && (
+              <motion.div variants={itemVariants} className="flex justify-between pt-5 mt-50 border-t gap-5 border-brand-indigo/10">
+                {isAuthenticated ? (
+                  <Link href="/profile" onClick={() => setOpen(false)} className="rounded-full border border-brand-indigo bg-brand-indigo px-5 py-2 text-center font-semibold text-white transition-all hover:bg-brand-indigo/90 w-full">
+                    Profile
+                  </Link>
+                ) : (
+                  <>
+                    <Link href="/auth/login" onClick={() => setOpen(false)} className="rounded-full border border-brand-indigo/10 bg-brand-indigo/5 px-5 py-2 text-center font-semibold text-brand-indigo transition-all hover:bg-brand-indigo hover:text-white w-50">
+                      Log in
+                    </Link>
+                    <Link href="/auth/signup" onClick={() => setOpen(false)} className="rounded-full border border-brand-indigo/10 px-5 py-2 text-center font-semibold text-[brand-text] transition-all bg-brand-indigo hover:bg-brand-indigo/30 hover:text-white w-50">
+                      Sign up
+                    </Link>
+                  </>
+                )}
+              </motion.div>
+            )}
           </motion.nav>
         )}
       </AnimatePresence>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-
-// import FlashcardsComponent from "@/components/layout/Flashcards";
+import FlashcardsComponent from "@/components/layout/Flashcards";
 
 interface DeckPageProps {
   params: Promise<{
@@ -21,7 +20,11 @@ export default async function DeckPage({ params }: DeckPageProps) {
         <p className="max-w-2xl text-base leading-7 text-brand-muted">
           This deck is ready to help you study the most important concepts. Tap through cards and build recall with practice.
         </p>
-        {/*<FlashcardsComponent deckId={resolvedParams.deckId} />*/}
+        
+        <div className="my-8">
+          <FlashcardsComponent deckId={resolvedParams.deckId} />
+        </div>
+
         <div className="flex flex-wrap gap-4">
           <Link href="/flashcards" className="rounded-full border border-brand-indigo/10 bg-white px-5 py-3 text-sm font-semibold text-brand-indigo transition hover:bg-brand-indigo/5">
             Back to decks
