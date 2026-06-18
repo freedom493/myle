@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   verification: {
     google: "oTzkE0PYdRbIsuuNLDmshQafwLhaFPoUHc_QJpZF_oY",
   },
+  alternates: {
+    canonical: "https://myle.vercel.app",
+  },
 };
 
 export default function RootLayout({
