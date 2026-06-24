@@ -48,3 +48,13 @@ export function saveBestScore(quizId: string, percentage: number): void {
     localStorage.setItem(KEYS.BEST_SCORES, JSON.stringify(scores));
   }
 }
+
+export function getCompletedDeck(): number {
+  if (typeof window === 'undefined') return 0;
+  const completed_deck = localStorage.getItem(KEYS.COMPLETED_DECKS)
+  return completed_deck ? parseInt(completed_deck, 10) : 0
+}
+
+export function updateCompletedDeck(): number {
+  return 0
+}

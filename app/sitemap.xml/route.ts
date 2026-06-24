@@ -1,5 +1,5 @@
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://myle.vercel.app";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://myle247.vercel.app";
 
   const pages = [
     "",

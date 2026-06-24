@@ -1,11 +1,95 @@
 {
-  "id": "legal-methods",
-  "name": "Legal Methods",
-  "description": "Key concepts and institutions in the Nigerian legal framework.",
-  "cards": [
-    {
-      "term": "Law and order",
-      "definition": "law fjf"
-    }
-  ]
+"id": "legal-methods",
+"name": "Sources of Nigerian Law: Judicial Precedent and Received English Law",
+"description": "Key concepts, doctrines, legal principles, and institutions regarding judicial precedent, court hierarchies, and the reception of English law in Nigeria.",
+"cards": [
+{
+"term": "Ratio Decidendi",
+"definition": "The legal principle, reason, or ground upon which a court case is decided, serving as the only authoritative and binding aspect of a judgment for future cases."
+},
+{
+"term": "Obiter Dictum",
+"definition": "An incidental statement or passing opinion made by a judge that is not strictly necessary to resolve the core issue of a case, carrying persuasive weight but lacking binding legal authority."
+},
+{
+"term": "Original Precedent",
+"definition": "A judicial precedent that establishes a completely new rule of law because the case presents a unique legal problem unaddressed by any existing statute or previous case law."
+},
+{
+"term": "Derivative Precedent",
+"definition": "A precedent that extends or expands an existing legal rule to cover a new scenario by utilizing analogical reasoning."
+},
+{
+"term": "Declaratory Precedent",
+"definition": "A precedent that simply applies, reaffirms, or declares an already existing, settled law, clothing it with greater judicial authority."
+},
+{
+"term": "Per Incuriam Decision",
+"definition": "A judgment rendered through ignorance, carelessness, or oversight of a binding statutory provision or a higher judicial precedent that would have fundamentally altered the court's decision."
+},
+{
+"term": "Distinguishing",
+"definition": "A legal mechanism where a judge or lawyer points out essential, material differences between the facts of a past precedent and the current case to show that the precedent is inapplicable."
+},
+{
+"term": "Section 6(5) of the 1999 Constitution",
+"definition": "The constitutional provision that explicitly establishes and lists the superior courts of record in the Federal Republic of Nigeria."
+},
+{
+"term": "Constitution (Third Alteration) Act, 2010",
+"definition": "The constitutional amendment enacted on March 4, 2011, which formally included the National Industrial Court (NIC) as a superior court of record in Section 6(5)."
+},
+{
+"term": "Superior Courts of Record",
+"definition": "High-tier courts within the judicial hierarchy possessing unlimited, original, or appellate jurisdiction, possessing the authority to award the maximum remedies permitted by law."
+},
+{
+"term": "Inferior Courts",
+"definition": "Courts ranking below the status of a High Court (e.g., Magistrate, District, Area, and Customary courts) that have limited statutory jurisdiction, handle matters with rapid summary dispatch, and are subject to the supervisory jurisdiction of the High Court."
+},
+{
+"term": "The Rule in Osakwe v. F.C.E. Asaba (2010)",
+"definition": "The Supreme Court principle establishing that when a lower court is faced with conflicting decisions from a higher court, it is mandatorily bound to follow the decision that is later in time."
+},
+{
+"term": "Rule in Young v. Bristol Aeroplane (1944)",
+"definition": "The baseline common law standard stating that the Court of Appeal is bound by its own past precedents except when its own past decisions conflict, when its decision is impliedly overruled by a higher apex court, or when a decision was given per incuriam."
+},
+{
+"term": "Received English Law",
+"definition": "A primary source of Nigerian law consisting of English Common Law, the Doctrines of Equity, and Statutes of General Application, initially introduced into Lagos Colony in 1863."
+},
+{
+"term": "Statutes of General Application (SOGA)",
+"definition": "Acts of the British Parliament enacted prior to January 1, 1900, that applied uniformly to all classes of persons and across geographical regions within England, received as law in Nigeria."
+},
+{
+"term": "January 1, 1900",
+"definition": "The strict statutory cut-off date governing the reception of British Statutes of General Application into Nigeria; subsequent UK amendments or repeals have no effect locally unless adopted by local laws."
+},
+{
+"term": "Common Law Writ System",
+"definition": "The rigid medieval English procedural system where actions could only be commenced using specific, pre-formulated letters (writs) issued by the Chancellor's office, leading to a denial of justice if a grievance did not fit existing forms."
+},
+{
+"term": "Equity",
+"definition": "A separate body of legal rules developed by the English Court of Chancery to mitigate the rigidity, technical formalism, and inadequate remedies of the Common Law, based on conscience, fairness, and natural justice."
+},
+{
+"term": "The Earl of Oxford’s Case (1615)",
+"definition": "The landmark historical case that resolved the conflict between Common Law and Equity, resulting in a royal decree that wherever the two systems clash, Equity shall always prevail."
+},
+{
+"term": "Judicature Acts of 1873 and 1875",
+"definition": "British statutes that accomplished procedural fusion by abolishing the separate common law courts and Court of Chancery, replacing them with a single Supreme Court of Judicature empowered to administer both law and equity concurrently."
+},
+{
+"term": "Equitable Remedies",
+"definition": "Discretionary court remedies introduced by Equity when monetary damages are inadequate, including Injunctions, Specific Performance, Rescission, and Rectification."
+},
+{
+"term": "Maxims of Equity",
+"definition": "The core guiding principles or proverbs (such as 'he who comes to equity must come with clean hands' or 'equity acts in personam') that govern how courts exercise discretion when granting equitable remedies."
+}
+]
 }
