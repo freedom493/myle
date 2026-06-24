@@ -2,6 +2,7 @@
   "id": "gst-101",
   "name": "GST 101 — Use of English",
   "description": "Test your knowledge of GST 101 topics",
+  "source": "GST 101 syllabus and instructor materials",
   "course": "GST 101",
   "level": "100L",
   "timeLimit": 600,

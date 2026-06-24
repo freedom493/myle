@@ -30,6 +30,9 @@ export default async function QuizPage({ params }: QuizPageProps) {
           {quizData.course || "General Quiz"} • {quizData.level || "All Levels"}
         </div>
         <h1 className="text-4xl font-extrabold text-brand-indigo font-heading">{quizData.name}</h1>
+        {quizData?.source && (
+          <p className="text-sm text-brand-muted font-medium">Source: {quizData.source}</p>
+        )}
         <p className="max-w-2xl text-base leading-relaxed text-brand-muted">
           {quizData.description}
         </p>

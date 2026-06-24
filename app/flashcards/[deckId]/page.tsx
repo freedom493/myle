@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { promises as fs } from 'fs';
+import path from 'path';
+import { notFound } from 'next/navigation';
 import FlashcardsComponent from "@/components/layout/FlashcardsComponent";
 
 interface DeckPageProps {
@@ -9,6 +12,17 @@ interface DeckPageProps {
 
 export default async function DeckPage({ params }: DeckPageProps) {
   const resolvedParams = await params;
+  const { deckId } = resolvedParams;
+
+  let deckData: any = null;
+  try {
+    const filePath = path.join(process.cwd(), 'content', 'flashcards', `${deckId}.json`);
+    const fileContent = await fs.readFile(filePath, 'utf8');
+    deckData = JSON.parse(fileContent);
+  } catch (err) {
+    console.error('Failed to load flashcard deck:', err);
+    return notFound();
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10 md:px-10">
@@ -17,12 +31,15 @@ export default async function DeckPage({ params }: DeckPageProps) {
           Flashcard deck
         </div>
         <h1 className="text-4xl font-semibold text-brand-indigo">{resolvedParams.deckId.replace(/-/g, " ")}</h1>
+        {deckData?.source && (
+          <p className="text-sm text-brand-muted font-medium">Source: {deckData.source}</p>
+        )}
         <p className="max-w-2xl text-base leading-7 text-brand-muted">
-          This deck is ready to help you study the most important concepts. Tap through cards and build recall with practice.
+          {deckData?.description || 'This deck is ready to help you study the most important concepts. Tap through cards and build recall with practice.'}
         </p>
         
         <div className="my-8">
-          <FlashcardsComponent deckId={resolvedParams.deckId} />
+          <FlashcardsComponent deckId={deckId} />
         </div>
 
         <div className="flex flex-wrap gap-4">

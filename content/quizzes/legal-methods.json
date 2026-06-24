@@ -1,130 +1,131 @@
 {
-"id": "legal-methods",
-"name": "LAW 101 - Introduction to Legal Method",
-"description": "Test your knowledge of Judicial Precedent, Court Hierarchy, and Received English Law in Nigeria",
-"course": "LAW 101",
-"level": "100L",
-"timeLimit": 600,
-"questions": [
-{
-"id": "q1",
-"question": "According to the text, what did Professor A.L. Goodhart assert is the primary determinant of a case's ratio decidendi?",
-"options": [
-"The material facts of the case as treated by the judge, combined with the decision based on them",
-"The abstract legal principles or rule of law enunciated by the judge in isolation",
-"The arguments submitted by the senior counsel representing both parties",
-"The ultimate policy implications and social impact of the final judgment"
-],
-"correctIndex": 0,
-"explanation": "Professor Goodhart's material facts theory states that the ratio decidendi is determined strictly by looking at the material facts of the case as treated by the deciding judge, combined with the final decision reached on those specific facts."
-},
-{
-"id": "q2",
-"question": "Which type of judicial precedent occurs when a judge formulation or applies a completely new rule of law because the legal problem is entirely novel?",
-"options": [
-"Original Precedent",
-"Derivative Precedent",
-"Declaratory Precedent",
-"Persuasive Precedent"
-],
-"correctIndex": 0,
-"explanation": "An original precedent occurs when a court faces a novel legal problem not covered by any existing statute or previous case, forcing the judge to formulate a completely new rule of law."
-},
-{
-"id": "q3",
-"question": "Under Nigerian jurisprudence, what is the significance of an obiter dictum delivered by the Supreme Court as established in Nwosu v. The State?",
-"options": [
-"It carries massive structural weight and is considered strictly binding on lower courts",
-"It lacks any legal relevance and cannot be cited under any circumstances",
-"It automatically overrules all existing statutory legislation on that subject",
-"It is treated as a coordinate precedent that only binds the Supreme Court itself"
-],
-"correctIndex": 0,
-"explanation": "Although obiter dicta generally carry only persuasive weight, the case of Nwosu v. The State established that a heavily considered obiter dictum from the Supreme Court on an important point of law is strictly binding on lower courts."
-},
-{
-"id": "q4",
-"question": "What standard must be met for a past judgment to be formally labeled as a per incuriam decision?",
-"options": [
-"It must have been delivered in ignorance or forgetfulness of an active statute or a binding higher precedent",
-"It must be based on a poor exercise of judicial discretion or a weak moral choice",
-"It must have failed to consider a persuasive, lower-tier case cited by the defense",
-"It must have been delivered by a panel with a dissenting minority opinion"
-],
-"correctIndex": 0,
-"explanation": "As noted in Huddersfield Police Authority v. Watson, a decision is per incuriam only if it was given in ignorance or forgetfulness of a binding statutory provision or a higher court authority which would have fundamentally altered the outcome."
-},
-{
-"id": "q5",
-"question": "According to the rule established by the Supreme Court in Osakwe v. F.C.E. Asaba (2010), how must a lower court resolve conflicting decisions issued by a superior court?",
-"options": [
-"It is mandatorily bound to follow the decision that is later in time",
-"It has the complete liberty to pick and choose whichever decision it prefers",
-"It must declare both decisions void and refer the matter back to the legislature",
-"It must follow the decision that has the highest number of concurring justices"
-],
-"correctIndex": 0,
-"explanation": "The landmark Supreme Court decision in Osakwe v. F.C.E. Asaba restricted the older 'pick and choose' view, ruling that in the event of a conflict between higher authorities, a lower court is mandatorily bound to follow the decision that is later in time."
-},
-{
-"id": "q6",
-"question": "Which of the following describes the horizontal precedent relationship operating between the High Court of a State, the Federal High Court, and the High Court of the FCT?",
-"options": [
-"They are courts of coordinate jurisdiction, so their decisions do not bind each other and are merely persuasive",
-"The Federal High Court strictly binds the State High Courts on all commercial matters",
-"A decision made by one High Court judge rigidly binds all other judges sitting on that same bench",
-"The High Court of the FCT stands at a higher structural tier than State High Courts"
-],
-"correctIndex": 0,
-"explanation": "Because these High Courts are of coordinate (equal) status, a decision of one High Court judge does not bind another High Court judge or a colleague on the same bench; it only carries a persuasive effect."
-},
-{
-"id": "q7",
-"question": "Under the Constitution (Third Alteration) Act 2010, what unique appellate restriction applies to civil cases originating from the National Industrial Court (NIC)?",
-"options": [
-"Appeals to the Court of Appeal exist only on questions concerning fundamental human rights",
-"There is an absolute, unfettered right of appeal on all civil and monetary disputes",
-"Civil appeals bypass the Court of Appeal and go directly to the Supreme Court",
-"No civil decision made by the National Industrial Court can ever be appealed"
-],
-"correctIndex": 0,
-"explanation": "The Third Alteration Act of 2010 established that for civil cases originating from the NIC, a right of appeal to the Court of Appeal is strictly limited to questions regarding fundamental human rights (Chapter IV of the Constitution), whereas criminal cases have an unfettered right of appeal."
-},
-{
-"id": "q8",
-"question": "What primary criteria did Professor Park propound to determine if an English legislative act qualifies as a Statute of General Application received into Nigeria?",
-"options": [
-"The act must have applied uniformly across all parts of the United Kingdom without territorial exclusions like Scotland or Ireland",
-"The act must have been formally signed by the Governor-General of Nigeria before 1900",
-"The act must target a highly specific, selective professional class or unique commercial entity",
-"The act must have been codified after the introduction of the Judicature Acts of 1873-1875"
-],
-"correctIndex": 0,
-"explanation": "Professor Park's test asserts that for a British statute to qualify as a Statute of General Application, it must possess geographical generality, meaning it applied uniformly throughout the United Kingdom and was not excluded from operating in jurisdictions like Scotland or Ireland."
-},
-{
-"id": "q9",
-"question": "What is the strict statutory cut-off date governing the reception of British Statutes of General Application (SOGA) into the Nigerian legal system?",
-"options": [
-"January 1, 1900",
-"October 1, 1960",
-"Ordinance No. 3 of 1863",
-"March 4, 2011"
-],
-"correctIndex": 0,
-"explanation": "To be received into Nigeria as a Statute of General Application, an English statute must have been in force in England as of January 1, 1900. Any changes or repeals made to the act in England after this date have no effect in Nigeria unless locally enacted."
-},
-{
-"id": "q10",
-"question": "Which equitable maxim dictates that a court order or remedy attaches to the conscience of an individual defendant rather than targeting an asset directly?",
-"options": [
-"Equity acts in personam",
-"Equity looks on that as done which ought to be done",
-"Where there is equal equity, the law shall prevail",
-"Equity will not suffer a wrong to be without a remedy"
-],
-"correctIndex": 0,
-"explanation": "The maxim 'Equity acts in personam' means that equity targets the individual person and their conscience directly (such as via contempt proceedings for defying an injunction), rather than operating strictly against property (in rem)."
-}
-]
+  "id": "legal-methods",
+  "name": "LAW 101 - Introduction to Legal Method",
+  "description": "Test your knowledge of Judicial Precedent, Court Hierarchy, and Received English Law in Nigeria",
+  "source": "LAW 101 exam prep materials and instructor notes",
+  "course": "LAW 101",
+  "level": "100L",
+  "timeLimit": 600,
+  "questions": [
+    {
+      "id": "q1",
+      "question": "According to the text, what did Professor A.L. Goodhart assert is the primary determinant of a case's ratio decidendi?",
+      "options": [
+        "The material facts of the case as treated by the judge, combined with the decision based on them",
+        "The abstract legal principles or rule of law enunciated by the judge in isolation",
+        "The arguments submitted by the senior counsel representing both parties",
+        "The ultimate policy implications and social impact of the final judgment"
+      ],
+      "correctIndex": 0,
+      "explanation": "Professor Goodhart's material facts theory states that the ratio decidendi is determined strictly by looking at the material facts of the case as treated by the deciding judge, combined with the final decision reached on those specific facts."
+    },
+    {
+      "id": "q2",
+      "question": "Which type of judicial precedent occurs when a judge formulation or applies a completely new rule of law because the legal problem is entirely novel?",
+      "options": [
+        "Original Precedent",
+        "Derivative Precedent",
+        "Declaratory Precedent",
+        "Persuasive Precedent"
+      ],
+      "correctIndex": 0,
+      "explanation": "An original precedent occurs when a court faces a novel legal problem not covered by any existing statute or previous case, forcing the judge to formulate a completely new rule of law."
+    },
+    {
+      "id": "q3",
+      "question": "Under Nigerian jurisprudence, what is the significance of an obiter dictum delivered by the Supreme Court as established in Nwosu v. The State?",
+      "options": [
+        "It carries massive structural weight and is considered strictly binding on lower courts",
+        "It lacks any legal relevance and cannot be cited under any circumstances",
+        "It automatically overrules all existing statutory legislation on that subject",
+        "It is treated as a coordinate precedent that only binds the Supreme Court itself"
+      ],
+      "correctIndex": 0,
+      "explanation": "Although obiter dicta generally carry only persuasive weight, the case of Nwosu v. The State established that a heavily considered obiter dictum from the Supreme Court on an important point of law is strictly binding on lower courts."
+    },
+    {
+      "id": "q4",
+      "question": "What standard must be met for a past judgment to be formally labeled as a per incuriam decision?",
+      "options": [
+        "It must have been delivered in ignorance or forgetfulness of an active statute or a binding higher precedent",
+        "It must be based on a poor exercise of judicial discretion or a weak moral choice",
+        "It must have failed to consider a persuasive, lower-tier case cited by the defense",
+        "It must have been delivered by a panel with a dissenting minority opinion"
+      ],
+      "correctIndex": 0,
+      "explanation": "As noted in Huddersfield Police Authority v. Watson, a decision is per incuriam only if it was given in ignorance or forgetfulness of a binding statutory provision or a higher court authority which would have fundamentally altered the outcome."
+    },
+    {
+      "id": "q5",
+      "question": "According to the rule established by the Supreme Court in Osakwe v. F.C.E. Asaba (2010), how must a lower court resolve conflicting decisions issued by a superior court?",
+      "options": [
+        "It is mandatorily bound to follow the decision that is later in time",
+        "It has the complete liberty to pick and choose whichever decision it prefers",
+        "It must declare both decisions void and refer the matter back to the legislature",
+        "It must follow the decision that has the highest number of concurring justices"
+      ],
+      "correctIndex": 0,
+      "explanation": "The landmark Supreme Court decision in Osakwe v. F.C.E. Asaba restricted the older 'pick and choose' view, ruling that in the event of a conflict between higher authorities, a lower court is mandatorily bound to follow the decision that is later in time."
+    },
+    {
+      "id": "q6",
+      "question": "Which of the following describes the horizontal precedent relationship operating between the High Court of a State, the Federal High Court, and the High Court of the FCT?",
+      "options": [
+        "They are courts of coordinate jurisdiction, so their decisions do not bind each other and are merely persuasive",
+        "The Federal High Court strictly binds the State High Courts on all commercial matters",
+        "A decision made by one High Court judge rigidly binds all other judges sitting on that same bench",
+        "The High Court of the FCT stands at a higher structural tier than State High Courts"
+      ],
+      "correctIndex": 0,
+      "explanation": "Because these High Courts are of coordinate (equal) status, a decision of one High Court judge does not bind another High Court judge or a colleague on the same bench; it only carries a persuasive effect."
+    },
+    {
+      "id": "q7",
+      "question": "Under the Constitution (Third Alteration) Act 2010, what unique appellate restriction applies to civil cases originating from the National Industrial Court (NIC)?",
+      "options": [
+        "Appeals to the Court of Appeal exist only on questions concerning fundamental human rights",
+        "There is an absolute, unfettered right of appeal on all civil and monetary disputes",
+        "Civil appeals bypass the Court of Appeal and go directly to the Supreme Court",
+        "No civil decision made by the National Industrial Court can ever be appealed"
+      ],
+      "correctIndex": 0,
+      "explanation": "The Third Alteration Act of 2010 established that for civil cases originating from the NIC, a right of appeal to the Court of Appeal is strictly limited to questions regarding fundamental human rights (Chapter IV of the Constitution), whereas criminal cases have an unfettered right of appeal."
+    },
+    {
+      "id": "q8",
+      "question": "What primary criteria did Professor Park propound to determine if an English legislative act qualifies as a Statute of General Application received into Nigeria?",
+      "options": [
+        "The act must have applied uniformly across all parts of the United Kingdom without territorial exclusions like Scotland or Ireland",
+        "The act must have been formally signed by the Governor-General of Nigeria before 1900",
+        "The act must target a highly specific, selective professional class or unique commercial entity",
+        "The act must have been codified after the introduction of the Judicature Acts of 1873-1875"
+      ],
+      "correctIndex": 0,
+      "explanation": "Professor Park's test asserts that for a British statute to qualify as a Statute of General Application, it must possess geographical generality, meaning it applied uniformly throughout the United Kingdom and was not excluded from operating in jurisdictions like Scotland or Ireland."
+    },
+    {
+      "id": "q9",
+      "question": "What is the strict statutory cut-off date governing the reception of British Statutes of General Application (SOGA) into the Nigerian legal system?",
+      "options": [
+        "January 1, 1900",
+        "October 1, 1960",
+        "Ordinance No. 3 of 1863",
+        "March 4, 2011"
+      ],
+      "correctIndex": 0,
+      "explanation": "To be received into Nigeria as a Statute of General Application, an English statute must have been in force in England as of January 1, 1900. Any changes or repeals made to the act in England after this date have no effect in Nigeria unless locally enacted."
+    },
+    {
+      "id": "q10",
+      "question": "Which equitable maxim dictates that a court order or remedy attaches to the conscience of an individual defendant rather than targeting an asset directly?",
+      "options": [
+        "Equity acts in personam",
+        "Equity looks on that as done which ought to be done",
+        "Where there is equal equity, the law shall prevail",
+        "Equity will not suffer a wrong to be without a remedy"
+      ],
+      "correctIndex": 0,
+      "explanation": "The maxim 'Equity acts in personam' means that equity targets the individual person and their conscience directly (such as via contempt proceedings for defying an injunction), rather than operating strictly against property (in rem)."
+    }
+  ]
 }
