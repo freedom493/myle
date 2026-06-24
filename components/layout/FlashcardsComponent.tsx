@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { RotateCw } from "lucide-react";
+import { useRouter } from 'next/navigation';
 import nigeria_legal_system from '@/content/flashcards/nigerian-legal-system.json';
 import legal_methods from '@/content/flashcards/legal-methods.json';
+import { updateCompletedDeck } from '@/lib/localStorage';
 
 interface FlashcardsComponentProps {
     deckId: string
@@ -21,13 +23,24 @@ export default function FlashcardsComponent({ deckId } : FlashcardsComponentProp
 
     const sampleFlashcards = findFlashcardId().cards;
 
+    const router = useRouter();
     const [currentCard, setCurrentCard] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
+    const [completed, setCompleted] = useState(false);
 
     const handleNext = () => {
         setIsFlipped(false);
         setTimeout(() => {
-            setCurrentCard((prev) => (prev + 1) % sampleFlashcards.length);
+            if (currentCard < sampleFlashcards.length - 1) {
+                setCurrentCard((prev) => prev + 1);
+            } else {
+                // Completed deck
+                setCompleted(true);
+                // increment local completed decks and dispatch event
+                updateCompletedDeck();
+                // navigate to completion page
+                router.push(`/flashcards/${deckId}/complete`);
+            }
         }, 180);
     };
 

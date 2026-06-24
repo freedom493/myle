@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BookOpen, ClipboardList, Trophy, Flame, CheckCircle, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { getStreak } from "@/lib/localStorage";
+import { getStreak, getCompletedDeck } from "@/lib/localStorage";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 
@@ -37,11 +37,13 @@ export default function DashboardPage() {
   const [streak, setStreak] = useState<number>(0);
   const [quizzesPassed, setQuizzesPassed] = useState<number>(0);
   const [averageScore, setAverageScore] = useState<number>(0);
+  const [completedDecks, setCompletedDecks] = useState<number>(0);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     // 1. Get streak from localStorage
     setStreak(getStreak());
+    setCompletedDecks(getCompletedDeck());
 
     // 2. Fetch stats
     async function fetchStats() {
@@ -66,6 +68,17 @@ export default function DashboardPage() {
             .from('quiz_scores')
             .select('percentage');
 
+          // Fetch completed decks count from cloud for authenticated users
+          const { data: completedData } = await supabase
+            .from('user_stats')
+            .select('completed_decks')
+            .eq('user_id', user.id)
+            .single();
+
+          if (completedData && typeof completedData.completed_decks === 'number') {
+            setCompletedDecks(completedData.completed_decks);
+          }
+
           if (scoresData && scoresData.length > 0) {
             const total = scoresData.length;
             const passed = scoresData.filter(s => Number(s.percentage) >= 50).length;
@@ -89,6 +102,8 @@ export default function DashboardPage() {
             setQuizzesPassed(passed);
             setAverageScore(Math.round(sum / percentages.length));
           }
+          // local completed decks for guest
+          setCompletedDecks(getCompletedDeck());
         } catch (err) {
           console.error("Error parsing local best scores:", err);
         }
@@ -100,6 +115,35 @@ export default function DashboardPage() {
       fetchStats();
     }
   }, [isAuthenticated, user, authLoading]);
+
+  // Listen for completed deck updates (dispatched by localStorage helpers)
+  useEffect(() => {
+    async function onCompleted(e: Event) {
+      const detail = (e as CustomEvent).detail as number;
+      setCompletedDecks(detail);
+
+      // push to cloud when authenticated
+      if (isAuthenticated && user) {
+        const supabase = createClient();
+        try {
+          await supabase
+            .from('user_stats')
+            .upsert({ user_id: user.id, completed_decks: detail }, { onConflict: 'user_id' });
+        } catch (err: unknown) {
+          console.error('Failed to sync completed decks:', err);
+        }
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('myle:completed_decks', onCompleted as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('myle:completed_decks', onCompleted as EventListener);
+      }
+    };
+  }, [isAuthenticated, user]);
 
   if (authLoading || loadingStats) {
     return (
@@ -135,6 +179,16 @@ export default function DashboardPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Study Streak</p>
             <p className="text-2xl font-black text-brand-indigo mt-0.5">{streak} Days</p>
+          </div>
+        </div>
+
+        <div className="glass-panel rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-brand-lime/30 transition-all duration-300">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/5 text-brand-indigo">
+            <BookOpen className="h-6 w-6 text-brand-indigo" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Completed Decks</p>
+            <p className="text-2xl font-black text-brand-indigo mt-0.5">{completedDecks}</p>
           </div>
         </div>
 

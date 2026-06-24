@@ -55,6 +55,29 @@ export function getCompletedDeck(): number {
   return completed_deck ? parseInt(completed_deck, 10) : 0
 }
 
+export function setCompletedDeck(count: number): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(KEYS.COMPLETED_DECKS, String(count));
+  try {
+    window.dispatchEvent(
+      new CustomEvent("myle:completed_decks", { detail: count }),
+    );
+  } catch (e) {
+    // ignore in non-browser contexts
+  }
+}
+
 export function updateCompletedDeck(): number {
-  return 0
+  if (typeof window === "undefined") return 0;
+  const current = getCompletedDeck();
+  const next = current + 1;
+  localStorage.setItem(KEYS.COMPLETED_DECKS, String(next));
+  try {
+    window.dispatchEvent(
+      new CustomEvent("myle:completed_decks", { detail: next }),
+    );
+  } catch (e) {
+    // ignore
+  }
+  return next;
 }

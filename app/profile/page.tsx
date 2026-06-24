@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
-import { getStreak } from '@/lib/localStorage';
+import { getStreak, getCompletedDeck, setCompletedDeck } from '@/lib/localStorage';
 import { Flame, BookOpen, GraduationCap, School, Layers, CheckCircle2, Trophy, Loader2 } from 'lucide-react';
 
 interface ProfileData {
@@ -37,11 +37,13 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [localStreak, setLocalStreak] = useState(0);
+  const [completedDecks, setCompletedDecks] = useState(0);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     // Read local streak regardless of auth
     setLocalStreak(getStreak());
+    setCompletedDecks(getCompletedDeck());
   }, []);
 
   useEffect(() => {
@@ -83,6 +85,33 @@ export default function ProfilePage() {
         if (scoresErr) throw scoresErr;
         if (scoresData) setScores(scoresData);
 
+        // fetch cloud completed decks
+        const { data: statsData, error: statsErr } = await supabase
+          .from('user_stats')
+          .select('completed_decks')
+          .eq('user_id', userId)
+          .single();
+
+        if (!statsErr && statsData && typeof statsData.completed_decks === 'number') {
+          // reconcile local vs cloud: prefer the higher count and sync both sides
+          const local = getCompletedDeck();
+          const cloud = statsData.completed_decks || 0;
+          const finalCount = Math.max(local, cloud);
+
+          if (finalCount !== cloud) {
+            // update cloud
+            await supabase
+              .from('user_stats')
+              .upsert({ user_id: userId, completed_decks: finalCount }, { onConflict: 'user_id' });
+          }
+
+          if (finalCount !== local) {
+            setCompletedDeck(finalCount);
+          }
+
+          setCompletedDecks(finalCount);
+        }
+
       } catch (err: any) {
         console.error('Failed to load profile data:', err);
       } finally {
@@ -91,6 +120,34 @@ export default function ProfilePage() {
     }
 
     fetchProfileAndScores();
+  }, [isAuthenticated, user]);
+
+  // Listen for completed deck updates and sync to cloud when authenticated
+  useEffect(() => {
+    async function onCompleted(e: Event) {
+      const detail = (e as CustomEvent).detail as number;
+      setCompletedDecks(detail);
+
+      if (isAuthenticated && user) {
+        const supabase = createClient();
+        try {
+          await supabase
+            .from('user_stats')
+            .upsert({ user_id: user.id, completed_decks: detail }, { onConflict: 'user_id' });
+        } catch (err: unknown) {
+          console.error('Failed to sync completed decks:', err);
+        }
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('myle:completed_decks', onCompleted as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('myle:completed_decks', onCompleted as EventListener);
+      }
+    };
   }, [isAuthenticated, user]);
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -163,6 +220,16 @@ export default function ProfilePage() {
             <div>
               <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Study Streak</p>
               <h3 className="text-2xl font-black text-brand-indigo">{localStreak} Days</h3>
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-3xl p-6 shadow-sm border border-brand-indigo/10 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-brand-indigo/5 flex items-center justify-center text-brand-indigo">
+              <BookOpen className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Completed Decks</p>
+              <h3 className="text-2xl font-black text-brand-indigo">{completedDecks}</h3>
             </div>
           </div>
 
