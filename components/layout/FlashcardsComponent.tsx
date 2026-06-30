@@ -3,13 +3,16 @@
 import { useState } from "react";
 import { RotateCw } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { updateCompletedDeck } from '@/lib/localStorage';
+
+
 import nigeria_legal_system from '@/content/flashcards/nigerian-legal-system.json';
 import legal_methods from '@/content/flashcards/legal-methods.json';
-import { updateCompletedDeck } from '@/lib/localStorage';
 
 interface FlashcardsComponentProps {
     deckId: string
 }
+
 
 export default function FlashcardsComponent({ deckId } : FlashcardsComponentProps) {
     const flashcards = [

@@ -1,9 +1,9 @@
 {
   "id": "legal-methods",
-  "name": "LAW 101 - Introduction to Legal Method",
+  "name": "Sources of Nigerian Law: Judicial Precedent and Received English Law",
   "description": "Test your knowledge of Judicial Precedent, Court Hierarchy, and Received English Law in Nigeria",
-  "source": "LAW 101 exam prep materials and instructor notes",
-  "course": "LAW 101",
+  "source": "Introduction to Legal Methods in Nigeria (Clara C. Ochiabutor)",
+  "course": "Legal Methods",
   "level": "100L",
   "timeLimit": 600,
   "questions": [
@@ -11,24 +11,24 @@
       "id": "q1",
       "question": "According to the text, what did Professor A.L. Goodhart assert is the primary determinant of a case's ratio decidendi?",
       "options": [
-        "The material facts of the case as treated by the judge, combined with the decision based on them",
         "The abstract legal principles or rule of law enunciated by the judge in isolation",
+        "The material facts of the case as treated by the judge, combined with the decision based on them",
         "The arguments submitted by the senior counsel representing both parties",
         "The ultimate policy implications and social impact of the final judgment"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "explanation": "Professor Goodhart's material facts theory states that the ratio decidendi is determined strictly by looking at the material facts of the case as treated by the deciding judge, combined with the final decision reached on those specific facts."
     },
     {
       "id": "q2",
       "question": "Which type of judicial precedent occurs when a judge formulation or applies a completely new rule of law because the legal problem is entirely novel?",
       "options": [
-        "Original Precedent",
         "Derivative Precedent",
+        "Original Precedent",
         "Declaratory Precedent",
         "Persuasive Precedent"
       ],
-      "correctIndex": 0,
+      "correctIndex": 1,
       "explanation": "An original precedent occurs when a court faces a novel legal problem not covered by any existing statute or previous case, forcing the judge to formulate a completely new rule of law."
     },
     {
@@ -47,12 +47,12 @@
       "id": "q4",
       "question": "What standard must be met for a past judgment to be formally labeled as a per incuriam decision?",
       "options": [
-        "It must have been delivered in ignorance or forgetfulness of an active statute or a binding higher precedent",
         "It must be based on a poor exercise of judicial discretion or a weak moral choice",
         "It must have failed to consider a persuasive, lower-tier case cited by the defense",
+        "It must have been delivered in ignorance or forgetfulness of an active statute or a binding higher precedent",
         "It must have been delivered by a panel with a dissenting minority opinion"
       ],
-      "correctIndex": 0,
+      "correctIndex": 2,
       "explanation": "As noted in Huddersfield Police Authority v. Watson, a decision is per incuriam only if it was given in ignorance or forgetfulness of a binding statutory provision or a higher court authority which would have fundamentally altered the outcome."
     },
     {
@@ -83,32 +83,33 @@
       "id": "q7",
       "question": "Under the Constitution (Third Alteration) Act 2010, what unique appellate restriction applies to civil cases originating from the National Industrial Court (NIC)?",
       "options": [
-        "Appeals to the Court of Appeal exist only on questions concerning fundamental human rights",
+        
         "There is an absolute, unfettered right of appeal on all civil and monetary disputes",
         "Civil appeals bypass the Court of Appeal and go directly to the Supreme Court",
-        "No civil decision made by the National Industrial Court can ever be appealed"
+        "No civil decision made by the National Industrial Court can ever be appealed",
+        "Appeals to the Court of Appeal exist only on questions concerning fundamental human rights"
       ],
-      "correctIndex": 0,
+      "correctIndex": 3,
       "explanation": "The Third Alteration Act of 2010 established that for civil cases originating from the NIC, a right of appeal to the Court of Appeal is strictly limited to questions regarding fundamental human rights (Chapter IV of the Constitution), whereas criminal cases have an unfettered right of appeal."
     },
     {
       "id": "q8",
       "question": "What primary criteria did Professor Park propound to determine if an English legislative act qualifies as a Statute of General Application received into Nigeria?",
       "options": [
-        "The act must have applied uniformly across all parts of the United Kingdom without territorial exclusions like Scotland or Ireland",
         "The act must have been formally signed by the Governor-General of Nigeria before 1900",
         "The act must target a highly specific, selective professional class or unique commercial entity",
+        "The act must have applied uniformly across all parts of the United Kingdom without territorial exclusions like Scotland or Ireland",
         "The act must have been codified after the introduction of the Judicature Acts of 1873-1875"
       ],
-      "correctIndex": 0,
+      "correctIndex": 2,
       "explanation": "Professor Park's test asserts that for a British statute to qualify as a Statute of General Application, it must possess geographical generality, meaning it applied uniformly throughout the United Kingdom and was not excluded from operating in jurisdictions like Scotland or Ireland."
     },
     {
       "id": "q9",
       "question": "What is the strict statutory cut-off date governing the reception of British Statutes of General Application (SOGA) into the Nigerian legal system?",
       "options": [
-        "January 1, 1900",
         "October 1, 1960",
+        "January 1, 1900",
         "Ordinance No. 3 of 1863",
         "March 4, 2011"
       ],
