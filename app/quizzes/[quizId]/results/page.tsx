@@ -16,11 +16,20 @@ interface ResultsData {
   quizName: string;
 }
 
+interface RatingStat {
+  rating: string;
+  count: number;
+  percentage: number;
+}
+
 interface PageProps {
   params: Promise<{
     quizId: string;
   }>;
 }
+
+const ratingOptions = ['easy', 'moderate', 'hard', 'difficult'] as const;
+type RatingOption = (typeof ratingOptions)[number];
 
 export default function QuizResultsPage({ params }: PageProps) {
   const resolvedParams = use(params);
@@ -31,6 +40,12 @@ export default function QuizResultsPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const [selectedRating, setSelectedRating] = useState<RatingOption | null>(null);
+  const [ratingSaved, setRatingSaved] = useState(false);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+  const [ratingDistribution, setRatingDistribution] = useState<RatingStat[]>([]);
+  const [loadingRatings, setLoadingRatings] = useState(false);
 
   // Inline SignUp Form State for anonymous users
   const [showSignUpForm, setShowSignUpForm] = useState(false);
@@ -44,6 +59,12 @@ export default function QuizResultsPage({ params }: PageProps) {
       setResults(JSON.parse(dataStr));
     }
   }, [resolvedParams.quizId]);
+
+  useEffect(() => {
+    if (results) {
+      fetchRatingDistribution(results.quizId);
+    }
+  }, [results]);
 
   if (!results) {
     return (
@@ -62,6 +83,38 @@ export default function QuizResultsPage({ params }: PageProps) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
+  };
+
+  const getRatingLabel = (rating: string) => rating.charAt(0).toUpperCase() + rating.slice(1);
+
+  const fetchRatingDistribution = async (quizId: string) => {
+    setLoadingRatings(true);
+    setRatingError(null);
+    const supabase = createClient();
+
+    try {
+      const { data, error } = await supabase
+        .from('quiz_rating_totals')
+        .select('rating, rating_count, rating_percentage')
+        .eq('quiz_id', quizId);
+
+      if (error) throw error;
+
+      if (data) {
+        setRatingDistribution(
+          data.map((item: any) => ({
+            rating: item.rating,
+            count: Number(item.rating_count ?? 0),
+            percentage: Number(item.rating_percentage ?? 0),
+          })),
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      setRatingError(err.message || 'Failed to load difficulty breakdown');
+    } finally {
+      setLoadingRatings(false);
+    }
   };
 
   const handleSaveScore = async (userId: string) => {
@@ -85,6 +138,48 @@ export default function QuizResultsPage({ params }: PageProps) {
     } catch (err: any) {
       console.error(err);
       setSubmitError(err.message || 'Failed to submit score');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSaveRating = async () => {
+    if (!selectedRating || !results) {
+      setRatingError('Select a difficulty rating first.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setRatingError(null);
+    const supabase = createClient();
+
+    try {
+      const payload = {
+        user_id: user?.id ?? null,
+        quiz_id: results.quizId,
+        rating: selectedRating,
+      };
+
+      let query;
+      if (user) {
+        // For authenticated users: upsert to allow re-rating
+        query = supabase.from('quiz_ratings').upsert(payload, {
+          onConflict: 'user_id,quiz_id',
+          returning: 'minimal',
+        });
+      } else {
+        // For anonymous users: just insert (no update needed)
+        query = supabase.from('quiz_ratings').insert(payload);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+
+      setRatingSaved(true);
+      await fetchRatingDistribution(results.quizId);
+    } catch (err: any) {
+      console.error(err);
+      setRatingError(err.message || 'Failed to save rating');
     } finally {
       setIsSubmitting(false);
     }
@@ -146,6 +241,80 @@ export default function QuizResultsPage({ params }: PageProps) {
           <Clock className="h-10 w-10 text-brand-indigo" />
           <span className="text-xs uppercase tracking-wider font-extrabold text-brand-muted">Time Taken</span>
           <span className="text-2xl font-bold text-brand-indigo">{formatTime(results.timeTaken)}</span>
+        </div>
+      </div>
+
+      {/* Quiz Difficulty Rating */}
+      <div className="rounded-3xl border border-brand-indigo/10 bg-white p-8 shadow-sm space-y-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-brand-indigo font-heading">Rate the Quiz Difficulty</h2>
+            <p className="text-sm text-brand-muted">Share your experience so future learners can judge how challenging this quiz is.</p>
+          </div>
+          {ratingSaved && (
+            <div className="rounded-full bg-brand-success/10 px-4 py-2 text-sm font-semibold text-brand-success">
+              Difficulty rating saved
+            </div>
+          )}
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-4">
+          {ratingOptions.map((option) => {
+            const active = selectedRating === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setSelectedRating(option)}
+                className={`rounded-3xl border px-4 py-3 text-sm font-semibold transition-all ${
+                  active
+                    ? 'border-brand-indigo bg-brand-indigo/10 text-brand-indigo shadow-sm'
+                    : 'border-brand-indigo/10 bg-white text-brand-indigo/80 hover:border-brand-indigo/20 hover:bg-brand-indigo/5'
+                }`}
+              >
+                {getRatingLabel(option)}
+              </button>
+            );
+          })}
+        </div>
+
+        {ratingError && <p className="text-brand-danger text-xs font-bold">{ratingError}</p>}
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={handleSaveRating}
+            disabled={!selectedRating || isSubmitting}
+            className="inline-flex items-center justify-center rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-indigo/90 disabled:opacity-50"
+          >
+            {isSubmitting ? 'Saving Rating...' : 'Submit Difficulty Rating'}
+          </button>
+        </div>
+
+        <div className="space-y-3 pt-4 border-t border-brand-indigo/10">
+          <h3 className="text-sm font-bold uppercase tracking-[0.28em] text-brand-muted">Difficulty distribution</h3>
+          {loadingRatings ? (
+            <p className="text-sm text-brand-muted">Loading difficulty breakdown...</p>
+          ) : (
+            ratingOptions.map((option) => {
+              const result = ratingDistribution.find((rating) => rating.rating === option);
+              const percentage = result?.percentage ?? 0;
+              return (
+                <div key={option} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm font-semibold text-brand-indigo">
+                    <span>{getRatingLabel(option)}</span>
+                    <span>{percentage.toFixed(0)}%</span>
+                  </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-brand-indigo/10">
+                    <div
+                      className="h-full rounded-full bg-brand-indigo"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

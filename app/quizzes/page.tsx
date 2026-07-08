@@ -11,7 +11,7 @@ const quizzes = [
     id: "legal-methods",
     title: "Legal methods",
     description: "Review methodology terms and reasoning skills for law students.",
-  },
+  }
 ];
 
 export default function QuizzesPage() {

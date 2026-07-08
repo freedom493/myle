@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://myle.vercel.app/sitemap.xml
+Sitemap: https://myle247.vercel.app/sitemap.xml

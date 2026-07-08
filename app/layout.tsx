@@ -18,7 +18,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "MYLE — Study hub for Nigerian university students",
+  title: "MYLE | Your Student OS",
   description:
     "Guest-first study tools, quizzes, flashcards, and leaderboard for Nigerian university students.",
   verification: {
@@ -27,6 +27,22 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://myle.vercel.app",
   },
+  openGraph: {
+    title: 'MYLE | Study Smarter, Excel on Campus',
+    description: 'Flashcards, quizzes, and leaderboards built specifically for Nigerian unversity students',
+    url: 'https://myle247.vercel.app',
+    siteName: 'MYLE',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'MYLE Student OS Preview',
+      },
+    ],
+    locale: 'en-NG',
+    type: 'website'
+  }
 };
 
 export default function RootLayout({
