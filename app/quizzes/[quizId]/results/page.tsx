@@ -165,7 +165,6 @@ export default function QuizResultsPage({ params }: PageProps) {
         // For authenticated users: upsert to allow re-rating
         query = supabase.from('quiz_ratings').upsert(payload, {
           onConflict: 'user_id,quiz_id',
-          returning: 'minimal',
         });
       } else {
         // For anonymous users: just insert (no update needed)
