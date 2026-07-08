@@ -6,14 +6,14 @@ const decks = [
     id: "nigerian-legal-system",
     title: "Nigerian legal system",
     description: "Core terms, institutions and case law for Nigerian law students.",
-    cards: 42,
+    cards: 10,
     difficulty: "Intermediate",
   },
   {
     id: "legal-methods",
     title: "Legal methods",
     description: "Study common research methods, definitions, and exam-ready summaries.",
-    cards: 38,
+    cards: 22,
     difficulty: "Intermediate",
   },
 ];
@@ -22,17 +22,17 @@ export default function FlashcardsPage() {
   return (
     <div className="min-h-screen bg-brand-surface">
       {/* Header - Mobile First */}
-      <div className="bg-white border-b border-brand-indigo/5">
+      <div className="bg-white dark:bg-white/5 border-b border-brand-indigo/5 dark:border-white/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-10 py-10 md:py-14 space-y-4 sm:space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-brand-indigo/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-indigo">
+          <div className="inline-flex items-center gap-2 rounded-full bg-brand-indigo/10 dark:bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-indigo dark:text-brand-lime">
             <BookOpen className="h-3.5 w-3.5" />
             Study Tools
           </div>
           <div className="space-y-2 sm:space-y-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-indigo font-heading leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-indigo dark:text-white font-heading leading-tight">
               Flashcard Decks
             </h1>
-            <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-brand-muted">
+            <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-brand-muted dark:text-slate-400">
               Learn with bite-sized flashcards that help you memorize definitions, statutes, and key concepts. Study at your own pace and track your progress.
             </p>
           </div>
@@ -44,8 +44,8 @@ export default function FlashcardsPage() {
         <div className="grid gap-6 sm:grid-cols-2">
           {decks.map((deck) => (
             <Link key={deck.id} href={`/flashcards/${deck.id}`}>
-              <article className="group h-full rounded-3xl border border-brand-indigo/10 bg-white p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-brand-lime/40 hover:shadow-lg hover:shadow-brand-lime/10 hover:-translate-y-1">
-                
+              <article className="group h-full rounded-3xl border border-brand-indigo/10 dark:border-white/10 bg-white dark:bg-white/5 p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-brand-lime/40 hover:shadow-lg hover:shadow-brand-lime/10 hover:-translate-y-1">
+
                 {/* Icon & Header */}
                 <div className="flex items-start justify-between mb-4 sm:mb-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/10 text-brand-indigo group-hover:bg-brand-indigo group-hover:text-brand-lime transition-all duration-300">

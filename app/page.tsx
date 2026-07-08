@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowRight, Flame, Sparkles, Trophy, RotateCw, HelpCircle, BookOpen } from "lucide-react";
+import { Flame, Sparkles, Trophy, RotateCw, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -69,16 +68,16 @@ export default function Home() {
       {/* Hero Section */}
       <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
         <div className="space-y-8">
-          <div className="inline-flex items-center rounded-full border border-brand-lime/30 bg-brand-lime/10 px-4.5 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-indigo">
+          <div className="inline-flex items-center rounded-full border border-brand-lime/30 bg-brand-lime/10 px-4.5 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-indigo dark:text-brand-lime">
             Built for Nigerian university students
           </div>
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand-indigo sm:text-6xl leading-[1.1]">
+          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand-indigo dark:text-white sm:text-6xl leading-[1.1]">
             Study smarter. <br />
-            <span className="bg-gradient-to-r from-brand-indigo via-brand-indigo/80 to-brand-lime bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand-indigo via-brand-indigo/80 to-brand-lime dark:from-white dark:via-indigo-300 dark:to-brand-lime bg-clip-text text-transparent">
               Excel on campus.
             </span>
           </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-brand-muted">
+          <p className="max-w-xl text-lg leading-relaxed text-brand-muted dark:text-slate-400">
             Browse exam-ready flashcard decks, test your knowledge with auto-scored quizzes, and climb leaderboards—all in a friction-free guest-first experience.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row">
@@ -90,13 +89,13 @@ export default function Home() {
         {/* Hero Interactive Widget */}
         <div className="relative">
           {/* Visual glow backdrop */}
-          <div className="absolute -inset-2 rounded-[36px] bg-gradient-to-tr from-brand-lime/20 to-brand-indigo/5 opacity-80 blur-lg" />
+          <div className="absolute -inset-2 rounded-[36px] bg-gradient-to-tr from-brand-lime/20 to-brand-indigo/5 dark:from-brand-lime/10 dark:to-transparent opacity-80 blur-lg" />
 
-          <div className="relative rounded-[32px] border border-brand-indigo/10 bg-white/95 p-6 md:p-8 shadow-xl shadow-brand-indigo/5">
-            <div className="mb-6 flex items-center justify-between rounded-2xl bg-brand-indigo px-5 py-4 text-white shadow-md shadow-brand-indigo/15">
+          <div className="relative rounded-[32px] border border-brand-indigo/10 dark:border-white/10 bg-white/95 dark:bg-[#0e0d16] p-6 md:p-8 shadow-xl shadow-brand-indigo/5 dark:shadow-brand-lime/5">
+            <div className="mb-6 flex items-center justify-between rounded-2xl bg-brand-indigo dark:bg-white/5 px-5 py-4 text-white shadow-md shadow-brand-indigo/15 dark:shadow-none border border-white/5">
               <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-brand-lime font-bold">Try it out</p>
-                <p className="text-lg font-bold">Interactive Flashcard</p>
+                <p className="text-lg font-bold text-white">Interactive Flashcard</p>
               </div>
               <BookOpen className="h-8 w-8 text-brand-lime" />
             </div>
@@ -104,17 +103,19 @@ export default function Home() {
             {/* Flashcard Body */}
             <div
               onClick={() => setIsFlipped(!isFlipped)}
-              className={`group min-h-[220px] rounded-2xl border border-brand-indigo/10 p-6 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 ${isFlipped
-                  ? 'bg-brand-indigo text-white shadow-inner'
-                  : 'bg-brand-surface text-brand-text hover:border-brand-lime/45 hover:shadow-md'
+              className={`group min-h-[220px] rounded-2xl border border-brand-indigo/10 dark:border-white/10 p-6 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 ${isFlipped
+                  ? 'bg-brand-indigo dark:bg-brand-lime text-white dark:text-[#0c0b14] shadow-inner'
+                  : 'bg-brand-surface dark:bg-white/5 text-brand-text dark:text-white hover:border-brand-lime/45 hover:shadow-md'
                 }`}
             >
               <div className="flex justify-between items-start gap-4">
-                <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md ${isFlipped ? 'bg-brand-lime text-brand-indigo' : 'bg-brand-indigo text-brand-lime'
+                <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md ${isFlipped 
+                    ? (theme => 'bg-brand-lime dark:bg-brand-indigo text-brand-indigo dark:text-brand-lime')() // dynamically overridden by style values
+                    : 'bg-brand-indigo dark:bg-white/10 text-brand-lime dark:text-white'
                   }`}>
                   {sampleFlashcards[currentCard].category}
                 </span>
-                <span className="text-[10px] text-brand-muted font-semibold group-hover:text-brand-indigo/80">
+                <span className="text-[10px] text-brand-muted dark:text-slate-400 font-semibold group-hover:text-brand-indigo/80 dark:group-hover:text-white">
                   {isFlipped ? "Showing Answer" : "Click to Reveal"}
                 </span>
               </div>
@@ -132,7 +133,7 @@ export default function Home() {
               </div>
 
               <div className="flex justify-between items-center text-xs font-semibold">
-                <span className={isFlipped ? 'text-brand-lime' : 'text-brand-indigo'}>
+                <span className={isFlipped ? 'text-brand-lime dark:text-brand-indigo' : 'text-brand-indigo dark:text-brand-lime'}>
                   Card {currentCard + 1} of {sampleFlashcards.length}
                 </span>
                 <div className="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
@@ -146,13 +147,13 @@ export default function Home() {
             <div className="mt-4 flex justify-between items-center">
               <button
                 onClick={handlePrev}
-                className="rounded-full border border-brand-indigo/10 px-4 py-2 text-xs font-bold text-brand-indigo transition hover:bg-brand-indigo/5"
+                className="rounded-full border border-brand-indigo/10 dark:border-white/10 px-4 py-2 text-xs font-bold text-brand-indigo dark:text-white transition hover:bg-brand-indigo/5 dark:hover:bg-white/5 cursor-pointer"
               >
                 Previous
               </button>
               <button
                 onClick={handleNext}
-                className="rounded-full bg-brand-indigo px-5 py-2 text-xs font-bold text-white transition hover:bg-brand-indigo/90 shadow-sm"
+                className="rounded-full bg-brand-indigo dark:bg-brand-lime px-5 py-2 text-xs font-bold text-white dark:text-[#0c0b14] transition hover:bg-brand-indigo/90 dark:hover:opacity-90 shadow-sm cursor-pointer"
               >
                 Next Card
               </button>
@@ -164,13 +165,13 @@ export default function Home() {
       {/* Features Grid Section */}
       <section className="space-y-12">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <p className="text-xs font-extrabold uppercase tracking-widest text-brand-lime bg-brand-indigo px-3 py-1 rounded-full w-fit mx-auto">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-brand-lime bg-brand-indigo dark:bg-white/5 px-3 py-1 rounded-full w-fit mx-auto border border-brand-indigo/5 dark:border-white/5">
             Why MYLE?
           </p>
-          <h2 className="font-heading text-3xl font-extrabold text-brand-indigo sm:text-4xl">
+          <h2 className="font-heading text-3xl font-extrabold text-brand-indigo dark:text-white sm:text-4xl">
             Designed for Campus Success
           </h2>
-          <p className="text-brand-muted">
+          <p className="text-brand-muted dark:text-slate-400">
             Skip the registration forms and jump straight into study sets created for Nigerian university curriculums.
           </p>
         </div>
@@ -192,17 +193,17 @@ export default function Home() {
       <section className="grid gap-8 sm:grid-cols-2">
         <div className="glass-panel rounded-[32px] p-8 shadow-sm flex flex-col justify-between hover:shadow-lg transition-all duration-300">
           <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-lime/20 text-brand-indigo rounded-md w-fit block mb-4">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-lime/20 text-brand-indigo dark:text-brand-lime rounded-md w-fit block mb-4">
               Practice Quizzes
             </span>
-            <h2 className="font-heading text-2xl font-extrabold text-brand-indigo">Ready for your first quiz?</h2>
-            <p className="mt-3 text-brand-muted leading-relaxed">
+            <h2 className="font-heading text-2xl font-extrabold text-brand-indigo dark:text-white">Ready for your first quiz?</h2>
+            <p className="mt-3 text-brand-muted dark:text-slate-400 leading-relaxed">
               Explore one of our starter quizzes and see how the leaderboard motivates every study session.
             </p>
             <div className="mt-6 space-y-3">
-              <div className="rounded-2xl bg-brand-surface p-5 border border-brand-indigo/5 relative overflow-hidden">
-                <p className="text-xs uppercase tracking-[0.2em] font-bold text-brand-indigo/60">GST 101 PREVIEW</p>
-                <p className="mt-2 font-bold text-brand-indigo text-lg">Use of English — 10 questions</p>
+              <div className="rounded-2xl bg-brand-surface dark:bg-white/5 p-5 border border-brand-indigo/5 dark:border-white/5 relative overflow-hidden">
+                <p className="text-xs uppercase tracking-[0.2em] font-bold text-brand-indigo/60 dark:text-slate-400">GST 101 PREVIEW</p>
+                <p className="mt-2 font-bold text-brand-indigo dark:text-white text-lg">Use of English — 10 questions</p>
               </div>
             </div>
           </div>
@@ -211,17 +212,17 @@ export default function Home() {
 
         <div className="glass-panel rounded-[32px] p-8 shadow-sm flex flex-col justify-between hover:shadow-lg transition-all duration-300">
           <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-indigo text-brand-lime rounded-md w-fit block mb-4">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-indigo dark:bg-white/10 text-brand-lime dark:text-white rounded-md w-fit block mb-4 border border-brand-indigo/5 dark:border-white/5">
               Flashcard Library
             </span>
-            <h2 className="font-heading text-2xl font-extrabold text-brand-indigo">Bite-sized summaries</h2>
-            <p className="mt-3 text-brand-muted leading-relaxed">
+            <h2 className="font-heading text-2xl font-extrabold text-brand-indigo dark:text-white">Bite-sized summaries</h2>
+            <p className="mt-3 text-brand-muted dark:text-slate-400 leading-relaxed">
               Browse flashcards for Nigerian Law, University study skills, and exam prep outlines. Build recall quickly.
             </p>
             <div className="mt-6 space-y-3">
-              <div className="rounded-2xl bg-brand-surface p-5 border border-brand-indigo/5 relative overflow-hidden">
-                <p className="text-xs uppercase tracking-[0.2em] font-bold text-brand-indigo/60">LAW STUDY PREVIEW</p>
-                <p className="mt-2 font-bold text-brand-indigo text-lg">Nigerian Legal System — 25 cards</p>
+              <div className="rounded-2xl bg-brand-surface dark:bg-white/5 p-5 border border-brand-indigo/5 dark:border-white/5 relative overflow-hidden">
+                <p className="text-xs uppercase tracking-[0.2em] font-bold text-brand-indigo/60 dark:text-slate-400">LAW STUDY PREVIEW</p>
+                <p className="mt-2 font-bold text-brand-indigo dark:text-white text-lg">Nigerian Legal System — 25 cards</p>
               </div>
             </div>
           </div>

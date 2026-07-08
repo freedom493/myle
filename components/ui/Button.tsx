@@ -17,9 +17,9 @@ export function Button({
   const baseStyles =
     "inline-flex items-center justify-center rounded-full px-6 py-3.5 text-sm font-bold transition-all duration-300 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-lime/60 cursor-pointer select-none";
   const variantStyles = {
-    primary: "bg-brand-indigo text-white shadow-md shadow-brand-indigo/15 hover:bg-brand-indigo/90 hover:shadow-lg hover:shadow-brand-indigo/25 hover:-translate-y-0.5",
-    secondary: "border border-brand-indigo/15 bg-white/80 backdrop-blur-sm text-brand-indigo shadow-sm hover:bg-brand-indigo/5 hover:-translate-y-0.5",
-    ghost: "text-brand-indigo hover:bg-brand-indigo/5",
+    primary: "bg-brand-indigo text-white shadow-md shadow-brand-indigo/15 hover:bg-brand-indigo/90 hover:shadow-lg hover:shadow-brand-indigo/25 hover:-translate-y-0.5 dark:bg-brand-lime dark:text-[#0c0b14] dark:shadow-brand-lime/10 dark:hover:bg-brand-lime/90",
+    secondary: "border border-brand-indigo/15 dark:border-white/10 bg-white/80 dark:bg-white/5 backdrop-blur-sm text-brand-indigo dark:text-white shadow-sm hover:bg-brand-indigo/5 dark:hover:bg-white/5 hover:-translate-y-0.5",
+    ghost: "text-brand-indigo dark:text-brand-lime hover:bg-brand-indigo/5 dark:hover:bg-white/5",
   };
   const classes = `${baseStyles} ${variantStyles[variant]} ${className}`.trim();
 

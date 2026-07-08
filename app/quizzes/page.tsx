@@ -24,17 +24,17 @@ export default function QuizzesPage() {
   return (
     <div className="min-h-screen bg-brand-surface">
       {/* Header - Mobile First */}
-      <div className="bg-white border-b border-brand-indigo/5">
+      <div className="bg-white dark:bg-white/5 border-b border-brand-indigo/5 dark:border-white/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-10 py-10 md:py-14 space-y-4 sm:space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full bg-brand-lime/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-lime">
             <ClipboardList className="h-3.5 w-3.5" />
             Assessment Tools
           </div>
           <div className="space-y-2 sm:space-y-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-indigo font-heading leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-indigo dark:text-white font-heading leading-tight">
               Practice Quizzes
             </h1>
-            <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-brand-muted">
+            <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-brand-muted dark:text-slate-400">
               Test yourself with curated quizzes designed to help you track your strongest topics, identify weak areas, and build exam confidence.
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function QuizzesPage() {
         <div className="grid gap-6 sm:grid-cols-2">
           {quizzes.map((quiz) => (
             <Link key={quiz.id} href={`/quizzes/${quiz.id}`}>
-              <article className="group h-full rounded-3xl border border-brand-indigo/10 bg-white p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-brand-lime/40 hover:shadow-lg hover:shadow-brand-lime/10 hover:-translate-y-1">
+              <article className="group h-full rounded-3xl border border-brand-indigo/10 dark:border-white/10 bg-white dark:bg-white/5 p-6 sm:p-8 shadow-sm transition-all duration-300 hover:border-brand-lime/40 hover:shadow-lg hover:shadow-brand-lime/10 hover:-translate-y-1">
                 
                 {/* Icon & Header */}
                 <div className="flex items-start justify-between mb-4 sm:mb-6">
