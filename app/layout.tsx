@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     google: "oTzkE0PYdRbIsuuNLDmshQafwLhaFPoUHc_QJpZF_oY",
   },
   alternates: {
-    canonical: "https://myle.vercel.app",
+    canonical: "https://myle247.vercel.app",
   },
   openGraph: {
     title: 'MYLE | Study Smarter, Excel on Campus',
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: 'MYLE',
     images: [
       {
-        url: '/og-image.png',
+        url: 'https://myle247.vercel.app/og-image.png',
         width: 1200,
         height: 630,
         alt: 'MYLE Student OS Preview',

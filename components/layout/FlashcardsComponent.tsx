@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCw } from "lucide-react";
+import { RotateCw, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { updateCompletedDeck } from '@/lib/localStorage';
-
 
 import nigeria_legal_system from '@/content/flashcards/nigerian-legal-system.json';
 import legal_methods from '@/content/flashcards/legal-methods.json';
@@ -13,8 +12,7 @@ interface FlashcardsComponentProps {
     deckId: string
 }
 
-
-export default function FlashcardsComponent({ deckId } : FlashcardsComponentProps) {
+export default function FlashcardsComponent({ deckId }: FlashcardsComponentProps) {
     const flashcards = [
         legal_methods, 
         nigeria_legal_system 
@@ -30,8 +28,10 @@ export default function FlashcardsComponent({ deckId } : FlashcardsComponentProp
     const [currentCard, setCurrentCard] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
     const [completed, setCompleted] = useState(false);
+    const [cardTransition, setCardTransition] = useState(false);
 
     const handleNext = () => {
+        setCardTransition(true);
         setIsFlipped(false);
         setTimeout(() => {
             if (currentCard < sampleFlashcards.length - 1) {
@@ -39,77 +39,145 @@ export default function FlashcardsComponent({ deckId } : FlashcardsComponentProp
             } else {
                 // Completed deck
                 setCompleted(true);
-                // increment local completed decks and dispatch event
                 updateCompletedDeck();
-                // navigate to completion page
                 router.push(`/flashcards/${deckId}/complete`);
             }
-        }, 180);
+            setCardTransition(false);
+        }, 200);
     };
 
     const handlePrev = () => {
+        setCardTransition(true);
         setIsFlipped(false);
         setTimeout(() => {
             setCurrentCard((prev) => (prev - 1 + sampleFlashcards.length) % sampleFlashcards.length);
-        }, 180);
+            setCardTransition(false);
+        }, 200);
     };
+
+    const progress = ((currentCard + 1) / sampleFlashcards.length) * 100;
 
     return (
         <>
-            <div
-                onClick={() => setIsFlipped(!isFlipped)}
-                className={`group min-h-[220px] rounded-2xl border border-brand-indigo/10 p-6 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 ${isFlipped
-                    ? 'bg-brand-indigo text-white shadow-inner'
-                    : 'bg-brand-surface text-brand-text hover:border-brand-lime/45 hover:shadow-md'
-                    }`}
-            >
-                <div className="flex justify-between items-start gap-4">
-                    <span className={`text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-md ${isFlipped ? 'bg-brand-lime text-brand-indigo' : 'bg-brand-indigo text-brand-lime'
-                        }`}>
-                        {findFlashcardId().name}
-                    </span>
-                    <span className="text-[10px] text-brand-muted font-semibold group-hover:text-brand-indigo/80">
-                        {isFlipped ? "Showing Answer" : "Click to Reveal"}
-                    </span>
-                </div>
-
-                <div className="my-6">
-                    {isFlipped ? (
-                        <p className="text-sm font-medium leading-relaxed animate-fade-in">
-                            {sampleFlashcards[currentCard].definition}
-                        </p>
-                    ) : (
-                        <p className="text-base font-bold leading-snug tracking-tight font-heading">
-                            {sampleFlashcards[currentCard].term}
-                        </p>
-                    )}
-                </div>
-
-                <div className="flex justify-between items-center text-xs font-semibold">
-                    <span className={isFlipped ? 'text-brand-lime' : 'text-brand-indigo'}>
+            {/* Progress Bar */}
+            <div className="mb-6 space-y-2">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-brand-muted">
                         Card {currentCard + 1} of {sampleFlashcards.length}
                     </span>
-                    <div className="flex items-center gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                        <RotateCw className="h-3.5 w-3.5 animate-spin-slow" />
-                        <span>Flip Card</span>
+                    <span className="text-xs font-bold text-brand-lime">
+                        {Math.round(progress)}%
+                    </span>
+                </div>
+                <div className="w-full h-2 bg-brand-indigo/10 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-brand-indigo to-brand-lime transition-all duration-300 rounded-full"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+            </div>
+
+            {/* Main Flashcard - Mobile Responsive */}
+            <div className="mb-8 perspective">
+                <div
+                    onClick={() => setIsFlipped(!isFlipped)}
+                    className={`group relative min-h-[280px] sm:min-h-[320px] md:min-h-[360px] rounded-3xl border-2 p-6 sm:p-8 md:p-10 flex flex-col justify-between cursor-pointer select-none transition-all duration-300 transform ${
+                        cardTransition ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
+                    } ${isFlipped
+                        ? 'bg-gradient-to-br from-brand-indigo to-brand-indigo/80 text-white border-brand-indigo shadow-lg shadow-brand-indigo/30'
+                        : 'bg-white text-brand-text hover:border-brand-lime border-brand-indigo/10 hover:border-brand-lime/50 shadow-sm hover:shadow-md hover:shadow-brand-lime/10'
+                    }`}
+                >
+                    {/* Card Label Badge */}
+                    <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+                        <span className={`inline-block text-[10px] sm:text-xs font-extrabold uppercase tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-colors ${
+                            isFlipped 
+                                ? 'bg-brand-lime text-brand-indigo' 
+                                : 'bg-brand-indigo text-brand-lime'
+                        }`}>
+                            {isFlipped ? "Answer" : "Question"}
+                        </span>
+                    </div>
+
+                    {/* Deck Name Badge */}
+                    <div className="absolute top-4 left-4 sm:top-6 sm:left-6">
+                        <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg ${
+                            isFlipped 
+                                ? 'bg-white/20 text-white' 
+                                : 'bg-brand-indigo/10 text-brand-indigo'
+                        }`}>
+                            {findFlashcardId().name}
+                        </span>
+                    </div>
+
+                    {/* Card Content */}
+                    <div className="mt-8 sm:mt-10 text-center">
+                        {isFlipped ? (
+                            <div className="animate-in fade-in duration-300">
+                                <p className="text-base sm:text-lg md:text-xl font-semibold leading-relaxed">
+                                    {sampleFlashcards[currentCard].definition}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in duration-300">
+                                <p className="text-xl sm:text-2xl md:text-3xl font-black leading-snug tracking-tight font-heading">
+                                    {sampleFlashcards[currentCard].term}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Flip Hint */}
+                    <div className="flex items-center justify-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity mt-8 sm:mt-10">
+                        <RotateCw className={`h-4 w-4 ${isFlipped ? 'text-brand-lime animate-spin-slow' : 'text-brand-indigo'}`} />
+                        <span className="text-xs sm:text-sm font-semibold">
+                            {isFlipped ? "Tap to see question" : "Tap to reveal answer"}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            {/* Pagination controls */}
-            <div className="mt-4 flex justify-between items-center">
+            {/* Navigation Controls - Mobile First */}
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
                 <button
                     onClick={handlePrev}
-                    className="rounded-full border border-brand-indigo/10 px-4 py-2 text-xs font-bold text-brand-indigo transition hover:bg-brand-indigo/5"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-brand-indigo/20 px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-brand-indigo transition hover:bg-brand-indigo/5 hover:border-brand-indigo/40 active:scale-95"
                 >
-                    Previous
+                    <ChevronLeft className="h-4 w-4" />
+                    <span className="hidden sm:inline">Previous</span>
                 </button>
+
+                <button
+                    onClick={() => router.push('/flashcards')}
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-brand-indigo/20 px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-brand-muted transition hover:text-brand-indigo hover:bg-brand-indigo/5 hover:border-brand-indigo/40 active:scale-95"
+                >
+                    <Home className="h-4 w-4" />
+                    <span className="hidden sm:inline">Decks</span>
+                </button>
+
                 <button
                     onClick={handleNext}
-                    className="rounded-full bg-brand-indigo px-5 py-2 text-xs font-bold text-white transition hover:bg-brand-indigo/90 shadow-sm"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-brand-indigo px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white transition hover:bg-brand-indigo/90 active:scale-95 shadow-md shadow-brand-indigo/20"
                 >
-                    Next Card
+                    <ChevronRight className="h-4 w-4" />
+                    <span className="hidden sm:inline">Next</span>
                 </button>
+            </div>
+
+            {/* Card Counter & Stats - Mobile Optimized */}
+            <div className="rounded-2xl border border-brand-indigo/10 bg-brand-surface/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-center sm:text-left">
+                    <p className="text-xs uppercase tracking-wider font-bold text-brand-muted mb-1">Progress</p>
+                    <p className="text-sm sm:text-base font-bold text-brand-indigo">
+                        {currentCard + 1} <span className="text-brand-muted">/ {sampleFlashcards.length}</span>
+                    </p>
+                </div>
+                <div className="text-center">
+                    <p className="text-xs uppercase tracking-wider font-bold text-brand-muted mb-1">Study Time</p>
+                    <p className="text-sm sm:text-base font-bold text-brand-lime">
+                        ~{Math.ceil(sampleFlashcards.length * 0.5)}m
+                    </p>
+                </div>
             </div>
         </>
     )
