@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,7 +71,34 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={socialLoading}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-indigo/10 bg-white px-4 py-3.5 text-sm font-semibold text-brand-indigo transition-all hover:bg-brand-indigo/5 disabled:opacity-70 shadow-sm"
+          >
+            <Image
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+              alt="Google"
+              width={20}
+              height={20}
+              unoptimized
+            />
+            {socialLoading ? "Redirecting to Google..." : "Continue with Google"}
+          </button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-brand-indigo/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white/90 px-2 text-brand-muted">or</span>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="mt-5 space-y-5">
           <div className="space-y-1.5">
             <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-indigo">
               Email Address
@@ -111,27 +139,6 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in to MYLE"}
           </Button>
         </form>
-
-        <div className="mt-6 space-y-3">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-brand-indigo/10" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white/90 px-2 text-brand-muted">or</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            disabled={socialLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-indigo/10 bg-white px-4 py-3.5 text-sm font-semibold text-brand-indigo transition-all hover:bg-brand-indigo/5 disabled:opacity-70"
-          >
-            <span className="text-base">G</span>
-            {socialLoading ? "Redirecting to Google..." : "Continue with Google"}
-          </button>
-        </div>
 
         <div className="mt-8 pt-6 border-t border-brand-indigo/5 text-center text-xs">
           <span className="text-brand-muted">New to MYLE? </span>
