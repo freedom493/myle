@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileHeader } from "@/components/layout/MobileHeader";
 import { Footer } from "@/components/layout/Footer";
 import WarningCard from "@/components/layout/Warning";
+import AuthPrompt from "@/components/layout/AuthPrompt";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWARegistration from "@/components/PWARegistration";
@@ -112,6 +113,7 @@ export default function RootLayout({
 
           <Analytics />
           <WarningCard />
+          <AuthPrompt />
           <PWARegistration />
         </ThemeProvider>
       </body>

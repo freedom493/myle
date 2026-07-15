@@ -15,13 +15,34 @@ export default async function QuizPage({ params }: QuizPageProps) {
   const resolvedParams = await params;
   const { quizId } = resolvedParams;
 
-  let quizData;
+  let quizData: any = null;
   try {
     const filePath = path.join(process.cwd(), "content", "quizzes", `${quizId}.json`);
     const fileContent = await fs.readFile(filePath, "utf8");
     quizData = JSON.parse(fileContent);
   } catch (error) {
-    console.error("Failed to load quiz content:", error);
+    // Try fetching from Supabase if it looks like a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(quizId)) {
+      try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .from('generations')
+          .select('json_data')
+          .eq('id', quizId)
+          .single();
+        
+        if (data && !error) {
+          quizData = data.json_data;
+        }
+      } catch (err) {
+        console.error('Failed to load from DB:', err);
+      }
+    }
+  }
+
+  if (!quizData) {
     return notFound();
   }
 

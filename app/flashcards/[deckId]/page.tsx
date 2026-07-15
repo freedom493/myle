@@ -21,9 +21,31 @@ export default async function DeckPage({ params }: DeckPageProps) {
     const fileContent = await fs.readFile(filePath, 'utf8');
     deckData = JSON.parse(fileContent);
   } catch (err) {
-    console.error('Failed to load flashcard deck:', err);
+    // If local file not found, try fetching from Supabase if it looks like a UUID
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(deckId)) {
+      try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .from('generations')
+          .select('json_data')
+          .eq('id', deckId)
+          .single();
+        
+        if (data && !error) {
+          deckData = data.json_data;
+        }
+      } catch (dbErr) {
+        console.error('Failed to load from DB:', dbErr);
+      }
+    }
+  }
+
+  if (!deckData) {
     return notFound();
   }
+
 
   const cardCount = deckData?.cards?.length || 0;
   const formattedDeckName = resolvedParams.deckId
@@ -86,7 +108,7 @@ export default async function DeckPage({ params }: DeckPageProps) {
 
         {/* Flashcard Player - Mobile Responsive */}
         <div className="my-10 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-          <FlashcardsComponent deckId={deckId} />
+          <FlashcardsComponent deckData={deckData} />
         </div>
 
         {/* Action Buttons - Mobile First Stack */}

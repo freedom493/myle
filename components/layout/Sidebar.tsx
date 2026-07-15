@@ -12,7 +12,10 @@ import {
   User, 
   LogOut, 
   X,
-  Sparkles
+  Sparkles,
+  Wand2,
+  FolderOpen,
+  Gift
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -25,6 +28,8 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard", icon: Flame },
   { href: "/flashcards", label: "Flashcards", icon: BookOpen },
   { href: "/quizzes", label: "Quizzes", icon: ClipboardList },
+  { href: "/create", label: "Create with AI", icon: Wand2 },
+  { href: "/library", label: "My Library", icon: FolderOpen },
   { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
@@ -34,7 +39,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const activeLinks = isAuthenticated 
-    ? [...navLinks, { href: "/profile", label: "Profile", icon: User }] 
+    ? [...navLinks, { href: "/tasks", label: "Rewards", icon: Gift }, { href: "/profile", label: "Profile", icon: User }] 
     : navLinks;
 
   const sidebarContent = (

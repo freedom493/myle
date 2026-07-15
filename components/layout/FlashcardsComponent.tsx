@@ -5,24 +5,14 @@ import { RotateCw, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { updateCompletedDeck } from '@/lib/localStorage';
 
-import nigeria_legal_system from '@/content/flashcards/nigerian-legal-system.json';
-import legal_methods from '@/content/flashcards/legal-methods.json';
-
 interface FlashcardsComponentProps {
-    deckId: string
+    deckData: any;
 }
 
-export default function FlashcardsComponent({ deckId }: FlashcardsComponentProps) {
-    const flashcards = [
-        legal_methods, 
-        nigeria_legal_system 
-    ];
+export default function FlashcardsComponent({ deckData }: FlashcardsComponentProps) {
+    const sampleFlashcards = deckData.cards || [];
+    const deckId = deckData.id;
 
-    const findFlashcardId = () => {
-        return flashcards[0].id === deckId ? flashcards[0] : flashcards[1]
-    }
-
-    const sampleFlashcards = findFlashcardId().cards;
 
     const router = useRouter();
     const [currentCard, setCurrentCard] = useState(0);
@@ -106,7 +96,7 @@ export default function FlashcardsComponent({ deckId }: FlashcardsComponentProps
                                 ? 'bg-white/20 text-white' 
                                 : 'bg-brand-indigo/10 text-brand-indigo'
                         }`}>
-                            {findFlashcardId().name}
+                            {deckData.name}
                         </span>
                     </div>
 

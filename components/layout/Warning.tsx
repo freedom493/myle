@@ -8,19 +8,43 @@ export default function WarningCard() {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    // Check if warning has been dismissed in this session
-    const isDismissed = sessionStorage.getItem('myle_session_warning_dismissed')
-    if (!isDismissed) {
-      // Small timeout to show it after page load completes
-      const timer = setTimeout(() => {
-        setIsOpen(true)
-      }, 1500)
-      return () => clearTimeout(timer)
+    // Check if permanently dismissed
+    const isPermanentlyDismissed = localStorage.getItem('myle_warning_joined') === 'true'
+    if (isPermanentlyDismissed) return
+
+    const checkAndShow = () => {
+      const lastDismissed = sessionStorage.getItem('myle_session_warning_dismissed_at')
+      if (lastDismissed) {
+        // Check if 5 minutes have passed since last dismissal
+        const timePassed = Date.now() - parseInt(lastDismissed, 10)
+        if (timePassed >= 5 * 60 * 1000) {
+          setIsOpen(true)
+        }
+      } else {
+        // Initial show after 1 minute (60000ms)
+        const initialLoad = sessionStorage.getItem('myle_session_initial_load')
+        if (!initialLoad) {
+          sessionStorage.setItem('myle_session_initial_load', Date.now().toString())
+        } else {
+          const timeSinceLoad = Date.now() - parseInt(initialLoad, 10)
+          if (timeSinceLoad >= 60 * 1000) {
+            setIsOpen(true)
+          }
+        }
+      }
     }
+
+    const interval = setInterval(checkAndShow, 10000) // check every 10s
+    return () => clearInterval(interval)
   }, [])
 
-  const handleDismiss = () => {
-    sessionStorage.setItem('myle_session_warning_dismissed', 'true')
+  const handleSnooze = () => {
+    sessionStorage.setItem('myle_session_warning_dismissed_at', Date.now().toString())
+    setIsOpen(false)
+  }
+
+  const handlePermanentDismiss = () => {
+    localStorage.setItem('myle_warning_joined', 'true')
     setIsOpen(false)
   }
 
@@ -50,7 +74,7 @@ export default function WarningCard() {
 
             {/* Close Button */}
             <button 
-              onClick={handleDismiss}
+              onClick={handleSnooze}
               className="absolute right-4 top-4 rounded-full p-1.5 text-gray-400 hover:text-white hover:bg-white/10 transition-colors z-10"
               aria-label="Close"
             >
@@ -101,12 +125,20 @@ export default function WarningCard() {
                 </a>
               </div>
 
-              <button 
-                onClick={handleDismiss}
-                className="mt-6 text-xs text-gray-400 hover:text-white transition-colors block w-full text-center hover:underline"
-              >
-                Maybe later, I'll explore first
-              </button>
+              <div className="mt-6 flex flex-col gap-2">
+                <button 
+                  onClick={handlePermanentDismiss}
+                  className="text-xs text-brand-lime hover:text-brand-lime/80 font-bold transition-colors block w-full text-center"
+                >
+                  I have already joined
+                </button>
+                <button 
+                  onClick={handleSnooze}
+                  className="text-xs text-gray-400 hover:text-white transition-colors block w-full text-center hover:underline"
+                >
+                  Maybe later, I'll explore first
+                </button>
+              </div>
             </div>
           </motion.div>
         </motion.div>
