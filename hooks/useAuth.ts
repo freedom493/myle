@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -42,9 +42,18 @@ export function useAuth() {
     return supabase.auth.signInWithPassword({ email, password });
   };
 
+  const signInWithGoogle = async () => {
+    return supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
   const signOut = () => supabase.auth.signOut();
 
   const isAuthenticated = !!user;
 
-  return { user, loading, isAuthenticated, signUp, signIn, signOut };
+  return { user, loading, isAuthenticated, signUp, signIn, signInWithGoogle, signOut };
 }

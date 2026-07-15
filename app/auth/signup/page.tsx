@@ -9,12 +9,13 @@ import { Trophy, Mail } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState(false);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -32,6 +33,25 @@ export default function SignupPage() {
 
     setSignUpSuccess(true);
     setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setSocialLoading(true);
+    setError(null);
+
+    const { error: authError, data } = await signInWithGoogle();
+
+    if (authError) {
+      setError(authError.message);
+      setSocialLoading(false);
+      return;
+    }
+
+    if (data?.url) {
+      window.location.assign(data.url);
+    } else {
+      setSocialLoading(false);
+    }
   };
 
   return (
@@ -131,6 +151,27 @@ export default function SignupPage() {
                 {loading ? "Creating account..." : "Join MYLE"}
               </Button>
             </form>
+
+            <div className="mt-6 space-y-3">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-brand-indigo/10" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white/90 px-2 text-brand-muted">or</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={socialLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-brand-indigo/10 bg-white px-4 py-3.5 text-sm font-semibold text-brand-indigo transition-all hover:bg-brand-indigo/5 disabled:opacity-70"
+              >
+                <span className="text-base">G</span>
+                {socialLoading ? "Redirecting to Google..." : "Continue with Google"}
+              </button>
+            </div>
 
             <div className="mt-8 pt-6 border-t border-brand-indigo/5 text-center text-xs">
               <span className="text-brand-muted">Already have an account? </span>

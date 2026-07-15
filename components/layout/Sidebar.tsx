@@ -11,13 +11,10 @@ import {
   Trophy, 
   User, 
   LogOut, 
-  Sun, 
-  Moon, 
   X,
   Sparkles
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "@/components/ThemeProvider";
 
 interface SidebarProps {
   isOpen?: boolean;
@@ -34,7 +31,6 @@ const navLinks = [
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { isAuthenticated, user, signOut, loading } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
 
   const activeLinks = isAuthenticated 
@@ -42,7 +38,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     : navLinks;
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-brand-surface dark:bg-[#0c0b14] p-6 text-brand-text dark:text-white">
+    <div className="flex flex-col h-full bg-brand-surface dark:bg-brand-surface p-6 text-brand-text dark:text-brand-text">
       {/* Header / Logo */}
       <div className="flex items-center justify-between mb-10">
         <Link href="/" className="group flex items-center gap-2.5 text-2xl font-black tracking-tight text-brand-indigo dark:text-white">
@@ -99,32 +95,16 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer / Account & Theme Toggle */}
+      {/* Footer / Account */}
       <div className="pt-6 border-t border-brand-indigo/5 dark:border-white/10 space-y-5">
-        {/* Theme Toggle Button */}
         <div className="flex items-center justify-between px-3">
           <span className="text-xs font-bold text-brand-muted dark:text-slate-400">Theme</span>
-          <button
-            onClick={toggleTheme}
-            className="relative inline-flex h-9 w-16 items-center rounded-full bg-brand-indigo/5 dark:bg-white/10 p-1 transition-colors duration-300 outline-none cursor-pointer border border-brand-indigo/5 dark:border-white/5"
-            aria-label="Toggle theme"
-          >
-            <motion.div
-              layout
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-indigo dark:bg-brand-lime text-brand-lime dark:text-brand-indigo shadow-md"
-              style={{
-                marginLeft: theme === 'dark' ? 'auto' : '0'
-              }}
-            >
-              {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-            </motion.div>
-          </button>
+          <span className="text-xs font-semibold text-brand-indigo dark:text-brand-lime">Light</span>
         </div>
 
         {/* User Card */}
         {!loading && (
-          <div className="rounded-2xl bg-brand-indigo/5 dark:bg-white/5 p-4 border border-brand-indigo/[0.02] dark:border-white/[0.02]">
+          <div className="rounded-2xl bg-brand-indigo/5 dark:bg-brand-elevated/5 p-4 border border-brand-indigo/[0.02] dark:border-white/[0.02]">
             {isAuthenticated ? (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">

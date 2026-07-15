@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight, RotateCcw, Home, Sparkles } from 'lucide-react';
@@ -9,11 +9,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
 
 interface Props {
-  params: { deckId: string };
+  params: Promise<{ deckId: string }>;
 }
 
 export default function CompletionPage({ params }: Props) {
-  const { deckId } = params;
+  const { deckId } = use(params);
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const [saving, setSaving] = useState(false);

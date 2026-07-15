@@ -1,46 +1,23 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light';
 
 type ThemeContextType = {
   theme: Theme;
-  toggleTheme: () => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light');
-
   useEffect(() => {
-    // Check initial theme from localStorage or system preference
-    const savedTheme = localStorage.getItem('myle-theme') as Theme | null;
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const activeTheme = savedTheme || systemTheme;
-    
-    setTheme(activeTheme);
-    if (activeTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('myle-theme', nextTheme);
-    if (nextTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: 'light' }}>
       {children}
     </ThemeContext.Provider>
   );

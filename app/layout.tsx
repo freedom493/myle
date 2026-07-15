@@ -80,19 +80,15 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('myle-theme') || 'light';
-                  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.style.colorScheme = 'light';
                 } catch (e) {}
               })();
             `
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col md:flex-row bg-brand-surface dark:bg-[#08070d] text-brand-text dark:text-white bg-grid-pattern relative">
+      <body className="min-h-full flex flex-col md:flex-row bg-brand-surface dark:bg-brand-surface text-brand-text dark:text-brand-text bg-grid-pattern relative">
         <ThemeProvider>
           {/* Ambient background glows */}
           <div className="pointer-events-none fixed -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-brand-lime/15 dark:bg-brand-lime/5 blur-[140px] z-0 animate-pulse-slow" />
