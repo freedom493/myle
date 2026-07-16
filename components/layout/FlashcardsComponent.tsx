@@ -1,23 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCw, ChevronLeft, ChevronRight, Home } from "lucide-react";
+import { RotateCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { updateCompletedDeck } from '@/lib/localStorage';
 
 interface FlashcardsComponentProps {
-    deckData: any;
+    deckData: {
+        id?: string;
+        name?: string;
+        cards?: { term?: string; definition?: string }[];
+        [key: string]: unknown;
+    };
 }
 
 export default function FlashcardsComponent({ deckData }: FlashcardsComponentProps) {
     const sampleFlashcards = deckData.cards || [];
-    const deckId = deckData.id;
-
+    const deckId = (deckData.id as string) || "";
 
     const router = useRouter();
     const [currentCard, setCurrentCard] = useState(0);
     const [isFlipped, setIsFlipped] = useState(false);
-    const [completed, setCompleted] = useState(false);
     const [cardTransition, setCardTransition] = useState(false);
 
     const handleNext = () => {
@@ -27,8 +30,6 @@ export default function FlashcardsComponent({ deckData }: FlashcardsComponentPro
             if (currentCard < sampleFlashcards.length - 1) {
                 setCurrentCard((prev) => prev + 1);
             } else {
-                // Completed deck
-                setCompleted(true);
                 updateCompletedDeck();
                 router.push(`/flashcards/${deckId}/complete`);
             }
@@ -127,47 +128,25 @@ export default function FlashcardsComponent({ deckData }: FlashcardsComponentPro
                 </div>
             </div>
 
-            {/* Navigation Controls - Mobile First */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-6">
+            {/* Navigation Controls */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 <button
+                    type="button"
                     onClick={handlePrev}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-brand-indigo/20 px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-brand-indigo transition hover:bg-brand-indigo/5 hover:border-brand-indigo/40 active:scale-95"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-brand-indigo/15 bg-white px-3 py-3.5 text-sm font-bold text-brand-indigo transition hover:bg-brand-indigo/5 active:scale-95"
                 >
                     <ChevronLeft className="h-4 w-4" />
-                    <span className="hidden sm:inline">Previous</span>
+                    Previous
                 </button>
 
                 <button
-                    onClick={() => router.push('/flashcards')}
-                    className="flex items-center justify-center gap-2 rounded-2xl border border-brand-indigo/20 px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-brand-muted transition hover:text-brand-indigo hover:bg-brand-indigo/5 hover:border-brand-indigo/40 active:scale-95"
-                >
-                    <Home className="h-4 w-4" />
-                    <span className="hidden sm:inline">Decks</span>
-                </button>
-
-                <button
+                    type="button"
                     onClick={handleNext}
-                    className="flex items-center justify-center gap-2 rounded-2xl bg-brand-indigo px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white transition hover:bg-brand-indigo/90 active:scale-95 shadow-md shadow-brand-indigo/20"
+                    className="flex items-center justify-center gap-2 rounded-2xl bg-brand-indigo px-3 py-3.5 text-sm font-bold text-white transition hover:bg-brand-indigo/90 active:scale-95 shadow-md shadow-brand-indigo/15"
                 >
+                    {currentCard < sampleFlashcards.length - 1 ? "Next" : "Finish"}
                     <ChevronRight className="h-4 w-4" />
-                    <span className="hidden sm:inline">Next</span>
                 </button>
-            </div>
-
-            {/* Card Counter & Stats - Mobile Optimized */}
-            <div className="rounded-2xl border border-brand-indigo/10 bg-brand-surface/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="text-center sm:text-left">
-                    <p className="text-xs uppercase tracking-wider font-bold text-brand-muted mb-1">Progress</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-indigo">
-                        {currentCard + 1} <span className="text-brand-muted">/ {sampleFlashcards.length}</span>
-                    </p>
-                </div>
-                <div className="text-center">
-                    <p className="text-xs uppercase tracking-wider font-bold text-brand-muted mb-1">Study Time</p>
-                    <p className="text-sm sm:text-base font-bold text-brand-lime">
-                        ~{Math.ceil(sampleFlashcards.length * 0.5)}m
-                    </p>
-                </div>
             </div>
         </>
     )

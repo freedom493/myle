@@ -1,38 +1,60 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ClipboardList, Trophy, Flame, CheckCircle, Sparkles, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import {
+  BookOpen,
+  ClipboardList,
+  Trophy,
+  Flame,
+  CheckCircle,
+  Sparkles,
+  Loader2,
+  ArrowRight,
+  Wand2,
+} from "lucide-react";
 import { getStreak, getCompletedDeck } from "@/lib/localStorage";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 
 const tools = [
   {
-    title: "Flashcard Decks",
-    description: "Review bite-sized notes and definitions from campus-ready study sets.",
+    title: "Flashcards",
+    description: "Review definitions and key concepts in minutes.",
     icon: BookOpen,
     href: "/flashcards",
+    cta: "Study decks",
+    accent: "bg-brand-indigo/8 text-brand-indigo",
   },
   {
-    title: "Practice Quizzes",
-    description: "Test your comprehension with timed, auto-scored exam preparation quizzes.",
+    title: "Quizzes",
+    description: "Timed practice with instant scoring.",
     icon: ClipboardList,
     href: "/quizzes",
+    cta: "Take a quiz",
+    accent: "bg-brand-lime/20 text-brand-indigo",
   },
   {
-    title: "Leaderboards",
-    description: "Compete with other campus students and track your relative rank.",
+    title: "Create with AI",
+    description: "Turn lecture notes into decks & quizzes.",
+    icon: Wand2,
+    href: "/create",
+    cta: "Generate",
+    accent: "bg-violet-100 text-violet-800",
+  },
+  {
+    title: "Leaderboard",
+    description: "See how you rank against peers.",
     icon: Trophy,
     href: "/leaderboard",
+    cta: "View ranks",
+    accent: "bg-amber-100 text-amber-800",
   },
 ];
 
 export default function DashboardPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
-  
+
   const [displayName, setDisplayName] = useState<string>("Guest Learner");
   const [streak, setStreak] = useState<number>(0);
   const [quizzesPassed, setQuizzesPassed] = useState<number>(0);
@@ -41,49 +63,47 @@ export default function DashboardPage() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    // 1. Get streak from localStorage
     setStreak(getStreak());
     setCompletedDecks(getCompletedDeck());
 
-    // 2. Fetch stats
     async function fetchStats() {
       setLoadingStats(true);
-      
+
       if (isAuthenticated && user) {
         const supabase = createClient();
         try {
-          // Fetch display name from profiles
           const { data: profileData } = await supabase
-            .from('profiles')
-            .select('display_name')
-            .eq('id', user.id)
+            .from("profiles")
+            .select("display_name")
+            .eq("id", user.id)
             .single();
-          
+
           if (profileData?.display_name) {
             setDisplayName(profileData.display_name);
           }
 
-          // Fetch scores to compute dynamic stats
           const { data: scoresData } = await supabase
-            .from('quiz_scores')
-            .select('percentage');
+            .from("quiz_scores")
+            .select("percentage")
+            .eq("user_id", user.id);
 
-          // Fetch completed decks count from cloud for authenticated users
           const { data: completedData } = await supabase
-            .from('user_stats')
-            .select('completed_decks')
-            .eq('user_id', user.id)
+            .from("user_stats")
+            .select("completed_decks")
+            .eq("user_id", user.id)
             .single();
 
-          if (completedData && typeof completedData.completed_decks === 'number') {
+          if (completedData && typeof completedData.completed_decks === "number") {
             setCompletedDecks(completedData.completed_decks);
           }
 
           if (scoresData && scoresData.length > 0) {
             const total = scoresData.length;
-            const passed = scoresData.filter(s => Number(s.percentage) >= 50).length;
-            const sum = scoresData.reduce((acc, curr) => acc + Number(curr.percentage), 0);
-            
+            const passed = scoresData.filter((s) => Number(s.percentage) >= 50).length;
+            const sum = scoresData.reduce(
+              (acc, curr) => acc + Number(curr.percentage),
+              0,
+            );
             setQuizzesPassed(passed);
             setAverageScore(Math.round(sum / total));
           }
@@ -91,18 +111,17 @@ export default function DashboardPage() {
           console.error("Error fetching live dashboard stats:", err);
         }
       } else {
-        // Guest user stats from localStorage
         try {
-          const scores = JSON.parse(localStorage.getItem('myle_best_scores') || '{}');
+          const scores = JSON.parse(
+            localStorage.getItem("myle_best_scores") || "{}",
+          );
           const percentages = Object.values(scores) as number[];
           if (percentages.length > 0) {
-            const passed = percentages.filter(p => p >= 50).length;
+            const passed = percentages.filter((p) => p >= 50).length;
             const sum = percentages.reduce((acc, curr) => acc + curr, 0);
-            
             setQuizzesPassed(passed);
             setAverageScore(Math.round(sum / percentages.length));
           }
-          // local completed decks for guest
           setCompletedDecks(getCompletedDeck());
         } catch (err) {
           console.error("Error parsing local best scores:", err);
@@ -116,131 +135,190 @@ export default function DashboardPage() {
     }
   }, [isAuthenticated, user, authLoading]);
 
-  // Listen for completed deck updates (dispatched by localStorage helpers)
   useEffect(() => {
     async function onCompleted(e: Event) {
       const detail = (e as CustomEvent).detail as number;
       setCompletedDecks(detail);
 
-      // push to cloud when authenticated
       if (isAuthenticated && user) {
         const supabase = createClient();
         try {
           await supabase
-            .from('user_stats')
-            .upsert({ user_id: user.id, completed_decks: detail }, { onConflict: 'user_id' });
+            .from("user_stats")
+            .upsert(
+              { user_id: user.id, completed_decks: detail },
+              { onConflict: "user_id" },
+            );
         } catch (err: unknown) {
-          console.error('Failed to sync completed decks:', err);
+          console.error("Failed to sync completed decks:", err);
         }
       }
     }
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('myle:completed_decks', onCompleted as EventListener);
-    }
+    window.addEventListener("myle:completed_decks", onCompleted as EventListener);
     return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('myle:completed_decks', onCompleted as EventListener);
-      }
+      window.removeEventListener(
+        "myle:completed_decks",
+        onCompleted as EventListener,
+      );
     };
   }, [isAuthenticated, user]);
 
   if (authLoading || loadingStats) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-        <Loader2 className="h-8 w-8 text-brand-indigo animate-spin" />
-        <p className="text-sm text-brand-muted font-semibold">Loading your dashboard...</p>
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-3">
+        <Loader2 className="h-7 w-7 text-brand-indigo animate-spin" />
+        <p className="text-sm text-brand-muted font-semibold">Loading dashboard…</p>
       </div>
     );
   }
 
+  const firstName = displayName.split(" ")[0] || displayName;
+
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 md:px-10 md:py-16 space-y-12">
-      
-      {/* Header and Welcome */}
-      <div className="space-y-4">
-        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-lime/20 text-brand-indigo rounded-md w-fit block">
-          Welcome back
-        </span>
-        <h1 className="font-heading text-4xl font-extrabold text-brand-indigo">
-          Hello, {displayName}!
-        </h1>
-        <p className="max-w-2xl text-base leading-relaxed text-brand-muted">
-          Access your study decks, practice exams, and track your campus rank. Work online or study as a guest without friction.
-        </p>
-      </div>
-
-      {/* Stats Summary Panel */}
-      <section className="grid gap-6 sm:grid-cols-3">
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-brand-lime/30 transition-all duration-300">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-lime/10 text-brand-indigo">
-            <Flame className="h-6 w-6 text-brand-indigo animate-pulse" />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Study Streak</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">{streak} Days</p>
-          </div>
+    <div className="page-shell page-section space-y-8 sm:space-y-10">
+      {/* Welcome */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-1.5 min-w-0">
+          <p className="text-[11px] font-extrabold uppercase tracking-widest text-brand-muted">
+            {isAuthenticated ? "Welcome back" : "Guest mode"}
+          </p>
+          <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-indigo tracking-tight">
+            Hey, {firstName} 👋
+          </h1>
+          <p className="text-sm sm:text-base text-brand-muted max-w-xl leading-relaxed">
+            Pick a tool and keep your streak going. No account needed to study.
+          </p>
         </div>
+        <Link
+          href="/quizzes/gst-101"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-indigo px-5 py-3 text-sm font-bold text-white shadow-md shadow-brand-indigo/15 hover:bg-brand-indigo/90 active:scale-[0.98] transition-all w-full sm:w-auto shrink-0"
+        >
+          Quick quiz
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </header>
 
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-brand-lime/30 transition-all duration-300">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/5 text-brand-indigo">
-            <BookOpen className="h-6 w-6 text-brand-indigo" />
+      {/* Stats — 2x2 mobile, 4-col desktop */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="stat-tile flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+            <Flame className="h-5 w-5" />
           </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Completed Decks</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">{completedDecks}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-brand-lime/30 transition-all duration-300">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/5 text-brand-indigo">
-            <CheckCircle className="h-6 w-6 text-brand-indigo" />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Quizzes Passed</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">{quizzesPassed}</p>
-          </div>
-        </div>
-
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex items-center gap-5 hover:border-brand-lime/30 transition-all duration-300">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-lime/15 text-brand-indigo">
-            <Sparkles className="h-6 w-6 text-brand-indigo" />
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-muted">Average Score</p>
-            <p className="text-2xl font-black text-brand-indigo mt-0.5">{averageScore}%</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Study Tools Grid */}
-      <section className="space-y-6">
-        <h2 className="font-heading text-xl font-bold text-brand-indigo">Choose your study routine</h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {tools.map((tool) => (
-            <Card key={tool.title} title={tool.title} description={tool.description} href={tool.href} Icon={tool.icon} />
-          ))}
-        </div>
-      </section>
-
-      {/* Action Banner */}
-      <section className="relative overflow-hidden rounded-[32px] border border-brand-indigo/10 bg-brand-indigo text-white p-8 md:p-10 shadow-lg shadow-brand-indigo/15">
-        {/* Glow accent */}
-        <div className="pointer-events-none absolute -right-20 -bottom-20 h-60 w-60 rounded-full bg-brand-lime/20 blur-[60px]" />
-        
-        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 bg-brand-lime text-brand-indigo rounded-md w-fit block">
-              Quiz Challenge
-            </span>
-            <h2 className="font-heading text-2xl font-extrabold">Ready to turn study into a habit?</h2>
-            <p className="text-brand-surface/80 max-w-xl text-sm leading-relaxed">
-              Start with a GST 101 preparation quiz or review custom flashcard decks to earn ranking badges and maintain your streak.
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-muted truncate">
+              Streak
+            </p>
+            <p className="text-xl sm:text-2xl font-black text-brand-indigo tabular-nums">
+              {streak}
+              <span className="text-sm font-bold text-brand-muted ml-0.5">d</span>
             </p>
           </div>
-          <Button href="/quizzes" className="bg-brand-lime text-brand-indigo border-none hover:bg-brand-lime/90 hover:scale-[1.02] shadow-md shadow-brand-lime/10">
-            Open Quizzes
-          </Button>
+        </div>
+
+        <div className="stat-tile flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-brand-indigo/8 text-brand-indigo">
+            <BookOpen className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-muted truncate">
+              Decks done
+            </p>
+            <p className="text-xl sm:text-2xl font-black text-brand-indigo tabular-nums">
+              {completedDecks}
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-tile flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <CheckCircle className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-muted truncate">
+              Quizzes passed
+            </p>
+            <p className="text-xl sm:text-2xl font-black text-brand-indigo tabular-nums">
+              {quizzesPassed}
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-tile flex items-center gap-3 sm:gap-4">
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-brand-lime/25 text-brand-indigo">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-brand-muted truncate">
+              Avg score
+            </p>
+            <p className="text-xl sm:text-2xl font-black text-brand-indigo tabular-nums">
+              {averageScore}
+              <span className="text-sm font-bold text-brand-muted">%</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Study tools */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-heading text-lg sm:text-xl font-bold text-brand-indigo">
+            Study tools
+          </h2>
+        </div>
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+          {tools.map((tool) => {
+            const Icon = tool.icon;
+            return (
+              <Link key={tool.href} href={tool.href} className="study-card group block">
+                <div className="flex items-start gap-4">
+                  <div
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tool.accent} transition-transform group-hover:scale-105`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-brand-indigo text-base">
+                      {tool.title}
+                    </h3>
+                    <p className="mt-1 text-sm text-brand-muted leading-snug">
+                      {tool.description}
+                    </p>
+                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-brand-indigo">
+                      {tool.cta}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* CTA banner */}
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-brand-indigo text-white p-5 sm:p-8 shadow-lg shadow-brand-indigo/15">
+        <div className="pointer-events-none absolute -right-16 -bottom-16 h-48 w-48 rounded-full bg-brand-lime/20 blur-[50px]" />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1.5 min-w-0">
+            <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 bg-brand-lime text-brand-indigo rounded-md">
+              Recommended
+            </span>
+            <h2 className="font-heading text-lg sm:text-xl font-extrabold">
+              GST 101 practice quiz
+            </h2>
+            <p className="text-white/75 text-sm max-w-md leading-relaxed">
+              A short Use of English quiz to warm up and protect your streak.
+            </p>
+          </div>
+          <Link
+            href="/quizzes/gst-101"
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-brand-lime px-5 py-3 text-sm font-bold text-brand-indigo hover:bg-brand-lime/90 active:scale-[0.98] transition-all w-full sm:w-auto shrink-0"
+          >
+            Start quiz
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
     </div>

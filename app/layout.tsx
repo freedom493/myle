@@ -2,8 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { MobileHeader } from "@/components/layout/MobileHeader";
-import { Footer } from "@/components/layout/Footer";
+import { AppShell } from "@/components/layout/AppShell";
 import WarningCard from "@/components/layout/Warning";
 import AuthPrompt from "@/components/layout/AuthPrompt";
 import { Analytics } from "@vercel/analytics/react";
@@ -25,8 +24,7 @@ export const viewport: Viewport = {
   themeColor: "#1e1b4b",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -46,28 +44,29 @@ export const metadata: Metadata = {
     canonical: "https://myle247.vercel.app",
   },
   openGraph: {
-    title: 'MYLE | Study Smarter, Excel on Campus',
-    description: 'Flashcards, quizzes, and leaderboards built specifically for Nigerian unversity students',
-    url: 'https://myle247.vercel.app',
-    siteName: 'MYLE',
+    title: "MYLE | Study Smarter, Excel on Campus",
+    description:
+      "Flashcards, quizzes, and leaderboards built specifically for Nigerian university students",
+    url: "https://myle247.vercel.app",
+    siteName: "MYLE",
     images: [
       {
-        url: 'https://myle247.vercel.app/og-image.png',
+        url: "https://myle247.vercel.app/og-image.png",
         width: 1200,
         height: 630,
-        alt: 'MYLE Student OS Preview',
+        alt: "MYLE Student OS Preview",
       },
     ],
-    locale: 'en-NG',
-    type: 'website'
-  }
+    locale: "en-NG",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-  }>) {
+}>) {
   return (
     <html
       lang="en-NG"
@@ -85,31 +84,18 @@ export default function RootLayout({
                   document.documentElement.style.colorScheme = 'light';
                 } catch (e) {}
               })();
-            `
+            `,
           }}
         />
       </head>
       <body className="min-h-full flex flex-col md:flex-row bg-brand-surface dark:bg-brand-surface text-brand-text dark:text-brand-text bg-grid-pattern relative">
         <ThemeProvider>
-          {/* Ambient background glows */}
-          <div className="pointer-events-none fixed -top-40 -left-40 h-[600px] w-[600px] rounded-full bg-brand-lime/15 dark:bg-brand-lime/5 blur-[140px] z-0 animate-pulse-slow" />
-          <div className="pointer-events-none fixed top-[35vh] -right-40 h-[600px] w-[600px] rounded-full bg-brand-indigo/10 dark:bg-brand-indigo/5 blur-[140px] z-0" />
-          <div className="pointer-events-none fixed -bottom-40 left-1/3 h-[500px] w-[500px] rounded-full bg-brand-lime/5 dark:bg-brand-lime/2 blur-[120px] z-0" />
+          {/* Soft ambient glows — lighter on app screens for focus */}
+          <div className="pointer-events-none fixed -top-40 -left-40 h-[480px] w-[480px] rounded-full bg-brand-lime/10 dark:bg-brand-lime/5 blur-[120px] z-0" />
+          <div className="pointer-events-none fixed top-[40vh] -right-40 h-[420px] w-[420px] rounded-full bg-brand-indigo/8 dark:bg-brand-indigo/5 blur-[120px] z-0" />
 
-          {/* Desktop Sidebar */}
           <Sidebar />
-
-          {/* Main Layout Container */}
-          <div className="flex flex-1 flex-col md:pl-64 lg:pl-72 min-w-0 min-h-screen">
-            {/* Mobile Header */}
-            <MobileHeader />
-
-            {/* Page Content */}
-            <main className="flex-1 relative z-10 w-full">{children}</main>
-
-            {/* Footer */}
-            <Footer />
-          </div>
+          <AppShell>{children}</AppShell>
 
           <Analytics />
           <WarningCard />
@@ -120,4 +106,3 @@ export default function RootLayout({
     </html>
   );
 }
-

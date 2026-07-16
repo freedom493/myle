@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, ClipboardList, Clock, BarChart3, Zap } from "lucide-react";
+import { ArrowLeft, ClipboardList } from "lucide-react";
 import QuizPlayer from "@/components/quiz/QuizPlayer";
 
 interface QuizPageProps {
@@ -15,29 +15,34 @@ export default async function QuizPage({ params }: QuizPageProps) {
   const resolvedParams = await params;
   const { quizId } = resolvedParams;
 
-  let quizData: any = null;
+  let quizData: Record<string, unknown> | null = null;
   try {
-    const filePath = path.join(process.cwd(), "content", "quizzes", `${quizId}.json`);
+    const filePath = path.join(
+      process.cwd(),
+      "content",
+      "quizzes",
+      `${quizId}.json`,
+    );
     const fileContent = await fs.readFile(filePath, "utf8");
     quizData = JSON.parse(fileContent);
-  } catch (error) {
-    // Try fetching from Supabase if it looks like a UUID
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  } catch {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(quizId)) {
       try {
-        const { createClient } = await import('@/lib/supabase/server');
+        const { createClient } = await import("@/lib/supabase/server");
         const supabase = await createClient();
         const { data, error } = await supabase
-          .from('generations')
-          .select('json_data')
-          .eq('id', quizId)
+          .from("generations")
+          .select("json_data")
+          .eq("id", quizId)
           .single();
-        
+
         if (data && !error) {
-          quizData = data.json_data;
+          quizData = data.json_data as Record<string, unknown>;
         }
       } catch (err) {
-        console.error('Failed to load from DB:', err);
+        console.error("Failed to load from DB:", err);
       }
     }
   }
@@ -46,88 +51,59 @@ export default async function QuizPage({ params }: QuizPageProps) {
     return notFound();
   }
 
-  const questionCount = quizData?.questions?.length || 0;
+  const questions = (quizData.questions as unknown[]) || [];
+  const questionCount = questions.length;
+  const timeLimitSec = Number(quizData.timeLimit) || 600;
+  const timeLimitMin = Math.max(1, Math.round(timeLimitSec / 60));
+
+  // Ensure player gets a stable shape
+  const playerQuiz = {
+    id: (quizData.id as string) || quizId,
+    name: (quizData.name as string) || "Practice Quiz",
+    description: (quizData.description as string) || "",
+    course: (quizData.course as string) || "",
+    level: (quizData.level as string) || "",
+    timeLimit: timeLimitSec,
+    questions: questions as {
+      id: string;
+      question: string;
+      options: string[];
+      correctIndex: number;
+      explanation?: string;
+    }[],
+  };
 
   return (
-    <div className="min-h-screen bg-brand-surface">
-      {/* Mobile-first Header */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm border-b border-brand-indigo/5">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 md:px-10 py-4 flex items-center justify-between">
-          <Link 
-            href="/quizzes" 
-            className="flex items-center gap-2 text-sm font-semibold text-brand-indigo hover:text-brand-lime transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Back</span>
-          </Link>
-          <div className="text-xs uppercase tracking-wider font-bold text-brand-lime">
-            {questionCount} questions
-          </div>
-        </div>
+    <div className="page-shell page-section max-w-3xl !mx-auto space-y-5 sm:space-y-6">
+      <div className="flex items-center justify-between gap-3">
+        <Link
+          href="/quizzes"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-brand-indigo/10 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-brand-indigo hover:bg-brand-indigo/5 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quizzes
+        </Link>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-brand-muted tabular-nums">
+          {questionCount} Q · {timeLimitMin}m
+        </span>
       </div>
 
-      {/* Main Content */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 md:px-10 py-8 md:py-12 space-y-8">
-        {/* Title Section - Mobile First */}
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
-          <div className="inline-flex items-center gap-2 rounded-full bg-brand-lime/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-lime">
-            <ClipboardList className="h-3.5 w-3.5" />
-            Quiz
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-brand-indigo font-heading leading-tight">
-              {quizData.name}
-            </h1>
-            {quizData.course || quizData.level ? (
-              <p className="text-xs sm:text-sm font-semibold text-brand-muted uppercase tracking-wider">
-                {quizData.course && <span>{quizData.course}</span>}
-                {quizData.course && quizData.level && <span> • </span>}
-                {quizData.level && <span>{quizData.level}</span>}
-              </p>
-            ) : null}
-          </div>
-          <p className="text-sm sm:text-base leading-relaxed text-brand-muted max-w-2xl">
-            {quizData.description}
+      <header className="space-y-2">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-lime/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-brand-indigo">
+          <ClipboardList className="h-3 w-3" />
+          Quiz
+        </div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-brand-indigo font-heading leading-tight">
+          {playerQuiz.name}
+        </h1>
+        {(playerQuiz.course || playerQuiz.level) && (
+          <p className="text-xs font-semibold text-brand-muted uppercase tracking-wider">
+            {[playerQuiz.course, playerQuiz.level].filter(Boolean).join(" · ")}
           </p>
-          {quizData?.source && (
-            <p className="text-xs text-brand-muted font-semibold">Source: {quizData.source}</p>
-          )}
-        </div>
+        )}
+      </header>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="glass-panel rounded-2xl p-4 border border-brand-indigo/10 text-center">
-            <div className="text-2xl sm:text-3xl font-black text-brand-indigo">{questionCount}</div>
-            <p className="text-xs font-semibold text-brand-muted mt-1 uppercase tracking-wider">Questions</p>
-          </div>
-          <div className="glass-panel rounded-2xl p-4 border border-brand-indigo/10 text-center">
-            <div className="text-2xl sm:text-3xl font-black text-brand-lime">{quizData.timeLimit || '20'}m</div>
-            <p className="text-xs font-semibold text-brand-muted mt-1 uppercase tracking-wider">Time Limit</p>
-          </div>
-          <div className="glass-panel rounded-2xl p-4 border border-brand-indigo/10 text-center">
-            <div className="text-2xl sm:text-3xl font-black text-brand-success">✓</div>
-            <p className="text-xs font-semibold text-brand-muted mt-1 uppercase tracking-wider">Timed</p>
-          </div>
-        </div>
-
-        {/* Quiz Player - Mobile Responsive */}
-        <div className="my-10 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-          <QuizPlayer quiz={quizData} />
-        </div>
-
-        {/* Study Tips */}
-        <div className="rounded-2xl border border-brand-lime/20 bg-brand-lime/5 p-6 space-y-3">
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-brand-lime" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-brand-lime">Pro Tips</h3>
-          </div>
-          <ul className="text-sm text-brand-muted leading-relaxed space-y-2">
-            <li>• Read each question carefully before answering</li>
-            <li>• Use the timer to manage your pace</li>
-            <li>• Review explanations after completion to learn from mistakes</li>
-          </ul>
-        </div>
-      </div>
+      <QuizPlayer quiz={playerQuiz} />
     </div>
   );
 }

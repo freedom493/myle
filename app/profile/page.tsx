@@ -189,66 +189,66 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 md:px-10 space-y-10 animate-in fade-in duration-300">
+    <div className="page-shell page-section space-y-6 sm:space-y-8">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brand-indigo/5 pb-6">
-        <div className="space-y-2">
-          <p className="text-sm uppercase tracking-[0.28em] text-brand-lime font-bold">Student Hub</p>
-          <h1 className="text-4xl font-extrabold text-brand-indigo font-heading">
-            {isAuthenticated ? `Welcome, ${profile.display_name || 'Learner'}` : 'Guest Profile'}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="space-y-1 min-w-0">
+          <p className="text-[11px] uppercase tracking-widest text-brand-muted font-bold">Profile</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-indigo font-heading tracking-tight truncate">
+            {isAuthenticated ? (profile.display_name || 'Learner') : 'Guest profile'}
           </h1>
         </div>
         {isAuthenticated && (
           <button
             onClick={() => signOut()}
-            className="px-5 py-2.5 rounded-full border border-brand-indigo/10 text-xs font-bold text-brand-indigo hover:bg-brand-indigo/5 transition-all w-fit"
+            className="px-4 py-2.5 rounded-xl border border-brand-indigo/10 text-xs font-bold text-brand-indigo hover:bg-brand-indigo/5 transition-all w-fit shrink-0"
           >
-            Sign Out
+            Sign out
           </button>
         )}
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
         {/* Left Column: Stats & Setup */}
-        <div className="md:col-span-1 space-y-6">
+        <div className="md:col-span-1 space-y-3 sm:space-y-4">
           {/* Streak Card */}
-          <div className="glass-panel rounded-3xl p-6 shadow-sm border border-brand-indigo/10 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-brand-lime/10 flex items-center justify-center text-brand-indigo animate-pulse">
-              <Flame className="h-6 w-6" />
+          <div className="stat-tile flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+              <Flame className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Study Streak</p>
-              <h3 className="text-2xl font-black text-brand-indigo">{localStreak} Days</h3>
+              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Study streak</p>
+              <h3 className="text-xl font-black text-brand-indigo tabular-nums">{localStreak} days</h3>
             </div>
           </div>
 
-          <div className="glass-panel rounded-3xl p-6 shadow-sm border border-brand-indigo/10 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-brand-indigo/5 flex items-center justify-center text-brand-indigo">
-              <BookOpen className="h-6 w-6" />
+          <div className="stat-tile flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-xl bg-brand-indigo/8 flex items-center justify-center text-brand-indigo shrink-0">
+              <BookOpen className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Completed Decks</p>
-              <h3 className="text-2xl font-black text-brand-indigo">{completedDecks}</h3>
+              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Completed decks</p>
+              <h3 className="text-xl font-black text-brand-indigo tabular-nums">{completedDecks}</h3>
             </div>
           </div>
 
           {/* Guest Warning / Call to Action */}
           {!isAuthenticated && (
-            <div className="rounded-3xl bg-brand-indigo text-white p-6 border border-brand-lime/25 space-y-4 shadow-xl">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-lime/10 text-brand-lime border border-brand-lime/30">
-                <Trophy className="h-5 w-5" />
+            <div className="rounded-2xl bg-brand-indigo text-white p-5 space-y-3 shadow-lg">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-lime/15 text-brand-lime">
+                <Trophy className="h-4.5 w-4.5 h-[18px] w-[18px]" />
               </div>
-              <h3 className="font-bold text-lg font-heading">Sync Your Progress</h3>
-              <p className="text-xs text-brand-surface/80 leading-relaxed">
-                You are currently studying as a Guest. Create an account to secure your study streaks, log quiz results, and compete on the leaderboard!
+              <h3 className="font-bold text-base font-heading">Sync your progress</h3>
+              <p className="text-xs text-white/75 leading-relaxed">
+                Create a free account to save streaks, quiz history, and leaderboard ranks.
               </p>
-              <div className="flex flex-col gap-2 pt-2">
+              <div className="flex flex-col gap-2 pt-1">
                 <Link href="/auth/signup" className="w-full text-center py-2.5 rounded-xl bg-brand-lime text-brand-indigo font-bold text-xs hover:bg-brand-lime/90 transition-all">
-                  Sign Up Now
+                  Sign up free
                 </Link>
                 <Link href="/auth/login" className="w-full text-center py-2.5 rounded-xl border border-white/20 text-white font-bold text-xs hover:bg-white/10 transition-all">
-                  Log In
+                  Log in
                 </Link>
               </div>
             </div>
@@ -256,9 +256,9 @@ export default function ProfilePage() {
 
           {/* Authenticated Profile Settings Form */}
           {isAuthenticated && (
-            <form onSubmit={handleProfileUpdate} className="glass-panel rounded-3xl p-6 shadow-sm border border-brand-indigo/10 space-y-4">
-              <h3 className="font-bold text-brand-indigo text-sm uppercase tracking-wider pb-2 border-b border-brand-indigo/5">
-                Profile Settings
+            <form onSubmit={handleProfileUpdate} className="stat-tile space-y-3.5">
+              <h3 className="font-bold text-brand-indigo text-xs uppercase tracking-wider pb-2 border-b border-brand-indigo/5">
+                Settings
               </h3>
               
               <div>
@@ -335,46 +335,46 @@ export default function ProfilePage() {
         </div>
 
         {/* Right Column: Quiz history */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="glass-panel rounded-3xl p-6 md:p-8 shadow-sm border border-brand-indigo/10 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-brand-indigo/5">
-              <h3 className="font-bold text-brand-indigo text-lg font-heading flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-brand-lime" />
-                Quiz Performance Logs
+        <div className="md:col-span-2">
+          <div className="stat-tile space-y-4">
+            <div className="flex items-center justify-between gap-3 pb-3 border-b border-brand-indigo/5">
+              <h3 className="font-bold text-brand-indigo text-base font-heading flex items-center gap-2">
+                <BookOpen className="h-4.5 w-4.5 h-[18px] w-[18px] text-brand-lime" />
+                Quiz history
               </h3>
               {isAuthenticated && (
-                <span className="text-xs font-semibold text-brand-muted">
-                  {scores.length} total attempts
+                <span className="text-xs font-semibold text-brand-muted shrink-0">
+                  {scores.length} attempts
                 </span>
               )}
             </div>
 
             {!isAuthenticated ? (
-              <div className="text-center py-12 space-y-3">
-                <CheckCircle2 className="h-10 w-10 text-brand-indigo/20 mx-auto" />
-                <h4 className="font-bold text-brand-indigo">No synced logs</h4>
+              <div className="text-center py-10 space-y-2">
+                <CheckCircle2 className="h-9 w-9 text-brand-indigo/15 mx-auto" />
+                <h4 className="font-bold text-brand-indigo text-sm">No synced logs</h4>
                 <p className="text-xs text-brand-muted max-w-sm mx-auto">
-                  Log in or register to upload your scores and review your full performance history here.
+                  Log in to save scores and review performance history.
                 </p>
               </div>
             ) : scores.length === 0 ? (
-              <div className="text-center py-12 space-y-3">
-                <CheckCircle2 className="h-10 w-10 text-brand-indigo/20 mx-auto" />
-                <h4 className="font-bold text-brand-indigo">No quiz attempts yet</h4>
+              <div className="text-center py-10 space-y-3">
+                <CheckCircle2 className="h-9 w-9 text-brand-indigo/15 mx-auto" />
+                <h4 className="font-bold text-brand-indigo text-sm">No quizzes yet</h4>
                 <p className="text-xs text-brand-muted max-w-sm mx-auto">
-                  Take your first practice quiz from the dashboard to log your performance!
+                  Take a practice quiz to start logging results.
                 </p>
-                <Link href="/quizzes" className="inline-block px-4 py-2 bg-brand-indigo text-white rounded-full text-xs font-bold hover:bg-brand-indigo/90">
-                  Browse Quizzes
+                <Link href="/quizzes" className="inline-flex px-4 py-2 bg-brand-indigo text-white rounded-xl text-xs font-bold hover:bg-brand-indigo/90">
+                  Browse quizzes
                 </Link>
               </div>
             ) : (
               <div className="divide-y divide-brand-indigo/5">
                 {scores.map((record) => (
-                  <div key={record.id} className="py-4 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
-                    <div>
-                      <h4 className="font-bold text-brand-indigo text-sm md:text-base">{record.quiz_name}</h4>
-                      <p className="text-xs text-brand-muted mt-0.5">
+                  <div key={record.id} className="py-3.5 flex items-center justify-between gap-3 first:pt-0 last:pb-0">
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-brand-indigo text-sm truncate">{record.quiz_name}</h4>
+                      <p className="text-[11px] text-brand-muted mt-0.5">
                         {new Date(record.created_at).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -383,13 +383,13 @@ export default function ProfilePage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-brand-muted">{record.score} / {record.total}</span>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-bold text-brand-muted tabular-nums">{record.score}/{record.total}</span>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
                         record.percentage >= 70 
                           ? 'bg-brand-success/15 text-brand-success' 
                           : record.percentage >= 50 
-                            ? 'bg-brand-indigo/5 text-brand-indigo' 
+                            ? 'bg-brand-indigo/8 text-brand-indigo' 
                             : 'bg-brand-danger/10 text-brand-danger'
                       }`}>
                         {record.percentage}%

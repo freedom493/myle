@@ -63,7 +63,7 @@ export default function Home() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-128px)] max-w-6xl flex-col gap-20 px-6 py-12 md:px-10 md:py-20">
+    <div className="page-shell flex min-h-[calc(100vh-128px)] flex-col gap-14 sm:gap-16 md:gap-20 py-10 sm:py-12 md:py-16">
 
       {/* Hero Section */}
       <section className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
@@ -71,18 +71,18 @@ export default function Home() {
           <div className="inline-flex items-center rounded-full border border-brand-lime/30 bg-brand-lime/10 px-4.5 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-indigo dark:text-brand-lime">
             Built for Nigerian university students
           </div>
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight text-brand-indigo dark:text-white sm:text-6xl leading-[1.1]">
+          <h1 className="font-heading text-3xl font-extrabold tracking-tight text-brand-indigo dark:text-white sm:text-5xl md:text-6xl leading-[1.1]">
             Study smarter. <br />
             <span className="bg-gradient-to-r from-brand-indigo via-brand-indigo/80 to-brand-lime dark:from-white dark:via-indigo-300 dark:to-brand-lime bg-clip-text text-transparent">
               Excel on campus.
             </span>
           </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-brand-muted dark:text-slate-400">
-            Browse exam-ready flashcard decks, test your knowledge with auto-scored quizzes, and climb leaderboards—all in a friction-free guest-first experience.
+          <p className="max-w-xl text-base sm:text-lg leading-relaxed text-brand-muted dark:text-slate-400">
+            Flashcards, auto-scored quizzes, and leaderboards — guest-first for Nigerian university students.
           </p>
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Button href="/dashboard" className="h-fit">Start studying now</Button>
-            <Button href="/leaderboard" variant="secondary" className="h-fit">View leaderboard</Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <Button href="/dashboard" className="h-fit w-full sm:w-auto">Start studying</Button>
+            <Button href="/flashcards" variant="secondary" className="h-fit w-full sm:w-auto">Browse flashcards</Button>
           </div>
         </div>
 
