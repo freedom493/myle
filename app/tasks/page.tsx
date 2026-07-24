@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gift, Share2, Copy, Check, Users, Shield, Zap, Sparkles, Loader2, Trophy, ArrowRight } from 'lucide-react';
+import { Gift, Share2, Copy, Check, Users, Shield, Sparkles, Loader2, Trophy } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/Button';
 
 interface Task {
   id: string;
@@ -120,26 +119,26 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 md:px-10 py-10 md:py-14 space-y-8 animate-in fade-in duration-500">
+    <div className="page-shell page-section max-w-5xl space-y-6 sm:space-y-8 animate-in fade-in duration-500">
       
       {/* Header */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         <div className="inline-flex items-center gap-2 rounded-full bg-brand-lime/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-brand-lime">
           <Gift className="h-3.5 w-3.5" />
           Rewards Center
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-brand-indigo font-heading leading-tight">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-indigo font-heading leading-tight tracking-tight">
           Earn Generation Credits
         </h1>
-        <p className="text-brand-muted text-sm max-w-2xl">
+        <p className="text-brand-muted text-sm max-w-2xl leading-relaxed">
           Complete tasks and invite friends to earn credits for AI deck and quiz generation. Every 30 days, your free allowance resets.
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         
         {/* Credits Status Card */}
-        <div className="md:col-span-1 rounded-3xl bg-brand-indigo text-white p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col h-full">
+        <div className="md:col-span-1 rounded-2xl sm:rounded-3xl bg-brand-indigo text-white p-5 sm:p-6 md:p-8 shadow-xl relative overflow-hidden flex flex-col h-full">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-lime/20 blur-[40px] pointer-events-none" />
           
           <div className="flex items-center gap-3 mb-8 relative z-10">
@@ -170,24 +169,24 @@ export default function TasksPage() {
         </div>
 
         {/* Tasks List */}
-        <div className="md:col-span-2 space-y-6">
-          <h2 className="text-xl font-bold text-brand-indigo font-heading flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-brand-lime" />
+        <div className="md:col-span-2 space-y-4 sm:space-y-6 min-w-0">
+          <h2 className="text-lg sm:text-xl font-bold text-brand-indigo font-heading flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-brand-lime shrink-0" />
             Available Tasks
           </h2>
 
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:gap-4">
             {tasks.map((task) => (
-              <div key={task.id} className="glass-panel rounded-3xl p-5 sm:p-6 border border-brand-indigo/10 flex flex-col sm:flex-row sm:items-center gap-4 transition-all hover:border-brand-lime/30">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${task.is_completed ? 'bg-brand-success/10 text-brand-success' : 'bg-brand-indigo/5 text-brand-indigo'}`}>
-                  {task.icon === 'users' ? <Users className="h-6 w-6" /> : 
-                   task.icon === 'share' ? <Share2 className="h-6 w-6" /> : 
-                   <Shield className="h-6 w-6" />}
+              <div key={task.id} className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-5 md:p-6 border border-brand-indigo/10 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 transition-all hover:border-brand-lime/30 min-w-0">
+                <div className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-2xl ${task.is_completed ? 'bg-brand-success/10 text-brand-success' : 'bg-brand-indigo/5 text-brand-indigo'}`}>
+                  {task.icon === 'users' ? <Users className="h-5 w-5 sm:h-6 sm:w-6" /> : 
+                   task.icon === 'share' ? <Share2 className="h-5 w-5 sm:h-6 sm:w-6" /> : 
+                   <Shield className="h-5 w-5 sm:h-6 sm:w-6" />}
                 </div>
                 
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-brand-indigo text-lg">{task.title}</h3>
+                <div className="flex-1 space-y-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-bold text-brand-indigo text-base sm:text-lg">{task.title}</h3>
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold uppercase bg-brand-lime/20 text-brand-indigo">
                       +{task.credits_reward} Credits
                     </span>
@@ -200,16 +199,16 @@ export default function TasksPage() {
                   </p>
                 </div>
 
-                <div className="sm:ml-auto pt-2 sm:pt-0 shrink-0">
+                <div className="sm:ml-auto pt-1 sm:pt-0 shrink-0 w-full sm:w-auto">
                   {task.slug === 'invite_friend' ? (
                     <div className="w-full sm:w-auto">
                       <div className="flex items-center bg-white rounded-xl border border-brand-indigo/10 overflow-hidden shadow-sm">
-                        <div className="px-3 py-2 text-xs font-mono text-brand-muted bg-gray-50 border-r border-brand-indigo/10 truncate max-w-[150px] sm:max-w-[120px]">
+                        <div className="px-3 py-2 text-xs font-mono text-brand-muted bg-gray-50 border-r border-brand-indigo/10 truncate flex-1 min-w-0 max-w-none sm:max-w-[140px]">
                           {referralCode}
                         </div>
                         <button 
                           onClick={handleCopy}
-                          className="flex items-center justify-center w-10 h-full text-brand-indigo hover:bg-brand-indigo/5 transition-colors"
+                          className="flex items-center justify-center w-10 h-10 shrink-0 text-brand-indigo hover:bg-brand-indigo/5 transition-colors"
                           title="Copy Referral Link"
                         >
                           {copied ? <Check className="h-4 w-4 text-brand-success" /> : <Copy className="h-4 w-4" />}
@@ -241,7 +240,7 @@ export default function TasksPage() {
             ))}
           </div>
           
-          <div className="rounded-2xl border-2 border-dashed border-brand-indigo/10 bg-brand-indigo/5 p-6 text-center mt-6">
+          <div className="rounded-2xl border-2 border-dashed border-brand-indigo/10 bg-brand-indigo/5 p-5 sm:p-6 text-center mt-2 sm:mt-4">
              <p className="text-sm font-semibold text-brand-indigo">More tasks coming soon!</p>
           </div>
         </div>

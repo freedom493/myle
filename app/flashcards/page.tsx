@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Zap, Clock, Globe } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Flashcards | MYLE',
+  description: 'View and Study with Flashcards',
+  openGraph: {
+    title: 'MYLE | Flashcards',
+    description: 'View and Study with Flashcards',
+    url: 'https://myle247.vercel.app/flashcards'
+  }
+}
 
 const localDecks = [
   {

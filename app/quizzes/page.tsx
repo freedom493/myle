@@ -8,6 +8,17 @@ import {
   Globe,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Quizzes | MYLE',
+  description: 'Take Quizzes to master materials and prepare for exams',
+  openGraph: {
+    title: 'MYLE | QUizzes',
+    description: 'Take Quizzes to help you prepare for exams or create your own quiz from your material view our quiz builder',
+    url: 'https://myle247.vercel.app/quizzes'
+  }
+}
 
 const localQuizzes = [
   {

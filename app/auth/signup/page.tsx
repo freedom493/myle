@@ -56,11 +56,11 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-6 py-16 md:py-24 relative animate-in fade-in duration-300">
+    <div className="mx-auto max-w-md w-full px-4 sm:px-6 py-10 sm:py-16 md:py-24 relative animate-in fade-in duration-300">
       {/* Glow backdrop behind the card */}
-      <div className="pointer-events-none absolute -inset-10 rounded-full bg-brand-lime/10 blur-[80px] z-0 animate-pulse-slow" />
+      <div className="pointer-events-none absolute -inset-6 sm:-inset-10 rounded-full bg-brand-lime/10 blur-[80px] z-0 animate-pulse-slow" />
       
-      <div className="relative z-10 glass-panel rounded-[32px] p-8 shadow-xl shadow-brand-indigo/5 border border-brand-indigo/5 bg-white/90">
+      <div className="relative z-10 glass-panel rounded-2xl sm:rounded-[32px] p-5 sm:p-8 shadow-xl shadow-brand-indigo/5 border border-brand-indigo/5 bg-white/90">
         
         {signUpSuccess ? (
           <div className="space-y-6 text-center py-6">

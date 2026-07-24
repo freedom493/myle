@@ -4,7 +4,7 @@
 MYLE is a modern student-focused learning platform built for Nigerian university students.  
 Designed with a **guest-first experience**, MYLE allows students to access quizzes, flashcards, study tools, and academic resources without creating an account.
 
-🌍 **Live Demo**: [https://myle247.vercel.app/](https://myle247.vercel.app/)
+🌍 **Live Site**: [https://myle247.vercel.app/](https://myle247.vercel.app/)
 
 ---
 
@@ -155,4 +155,3 @@ MIT License
 
 Built with ❤️ by Freedom Beulah
 
-```

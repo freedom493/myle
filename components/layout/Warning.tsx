@@ -20,6 +20,11 @@ export default function WarningCard() {
         if (timePassed >= 5 * 60 * 1000) {
           setIsOpen(true)
         }
+
+        const joinedAlready = localStorage.getItem('myle_warning_joined')
+        if (joinedAlready === 'true') {
+          setIsOpen(false)
+        }
       } else {
         // Initial show after 1 minute (60000ms)
         const initialLoad = sessionStorage.getItem('myle_session_initial_load')

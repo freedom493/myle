@@ -82,7 +82,7 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
-}
+
 
 html {
   scroll-behavior: smooth;
@@ -215,3 +215,4 @@ img {
   @apply h-full rounded-2xl border border-brand-indigo/8 bg-white p-5 sm:p-6 shadow-sm transition-all duration-200 hover:border-brand-lime/40 hover:shadow-md hover:-translate-y-0.5;
 }
 
+}

@@ -4,11 +4,20 @@ import path from "path";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import FlashcardsComponent from "@/components/layout/FlashcardsComponent";
+import { Metadata } from "next";
 
 interface DeckPageProps {
   params: Promise<{
     deckId: string;
   }>;
+}
+
+export async function generateMetadata({ params }: DeckPageProps): Promise<Metadata> {
+  const { deckId } = await params;
+
+  return {
+    title: deckId
+  }
 }
 
 export default async function DeckPage({ params }: DeckPageProps) {

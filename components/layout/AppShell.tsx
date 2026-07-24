@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Footer } from "./Footer";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
-import { showBottomNav, showFooter } from "@/lib/routes";
+import { showBottomNav, showFooter, showMobileHeader } from "@/lib/routes";
 
 interface AppShellProps {
   children: ReactNode;
@@ -13,21 +13,21 @@ interface AppShellProps {
 
 /**
  * Client shell that switches chrome by route:
- * - Marketing pages: full footer, no bottom nav
- * - App/study pages: no footer, mobile bottom nav
- * - Immersive study sessions: no footer, no bottom nav
+ * - Homepage / terms / privacy: marketing footer only
+ * - All other pages: mobile header + bottom nav (shared)
  */
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const footer = showFooter(pathname);
   const bottomNav = showBottomNav(pathname);
+  const mobileHeader = showMobileHeader(pathname);
 
   return (
     <div className="flex flex-1 flex-col md:pl-64 lg:pl-72 min-w-0 min-h-screen">
-      <MobileHeader />
+      {mobileHeader && <MobileHeader />}
 
       <main
-        className={`flex-1 relative z-10 w-full ${
+        className={`flex-1 relative z-10 w-full min-w-0 ${
           bottomNav ? "pb-2 md:pb-0" : ""
         }`}
       >

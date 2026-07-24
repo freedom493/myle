@@ -1,10 +1,8 @@
-/** Paths that use marketing chrome (footer, no bottom nav). */
+/** Paths that use marketing chrome only (footer, no bottom nav / mobile app header). */
 export const MARKETING_EXACT = new Set([
   "/",
   "/privacy",
   "/terms",
-  "/sitemap",
-  "/offline",
 ]);
 
 /** Study-tool prefixes: app chrome, no marketing footer. */
@@ -37,7 +35,7 @@ export function isAppPath(pathname: string | null): boolean {
 }
 
 /**
- * Immersive study sessions — hide mobile bottom nav so the player has full focus.
+ * Immersive study sessions — compact mobile header so the player has more room.
  * e.g. /flashcards/legal-methods, /quizzes/gst-101/results
  */
 export function isImmersiveStudyPath(pathname: string | null): boolean {
@@ -47,10 +45,21 @@ export function isImmersiveStudyPath(pathname: string | null): boolean {
   return false;
 }
 
+/** Marketing pages that keep the full footer and hide app chrome. */
 export function showFooter(pathname: string | null): boolean {
-  return isMarketingPath(pathname) || !isAppPath(pathname);
+  if (!pathname) return true;
+  return MARKETING_EXACT.has(pathname);
 }
 
+/**
+ * Bottom nav is shared on every page except homepage, terms, and privacy.
+ */
 export function showBottomNav(pathname: string | null): boolean {
-  return isAppPath(pathname) && !isImmersiveStudyPath(pathname);
+  if (!pathname) return false;
+  return !MARKETING_EXACT.has(pathname);
+}
+
+/** Mobile top bar — same visibility as bottom nav (app chrome). */
+export function showMobileHeader(pathname: string | null): boolean {
+  return showBottomNav(pathname);
 }

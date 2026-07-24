@@ -68,11 +68,11 @@ export default function QuizResultsPage({ params }: PageProps) {
 
   if (!results) {
     return (
-      <div className="mx-auto max-w-4xl px-6 py-20 text-center">
-        <AlertTriangle className="h-12 w-12 text-brand-lime mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-brand-indigo">No Results Found</h2>
-        <p className="text-brand-muted mt-2">Please start a quiz first from the dashboard.</p>
-        <Link href="/quizzes" className="mt-6 inline-block rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white">
+      <div className="page-shell page-section max-w-4xl text-center">
+        <AlertTriangle className="h-10 w-10 sm:h-12 sm:w-12 text-brand-lime mx-auto mb-4" />
+        <h2 className="text-xl sm:text-2xl font-bold text-brand-indigo">No Results Found</h2>
+        <p className="text-sm sm:text-base text-brand-muted mt-2">Please start a quiz first from the dashboard.</p>
+        <Link href="/quizzes" className="mt-6 inline-block rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white w-full sm:w-auto max-w-xs">
           Back to Quizzes
         </Link>
       </div>
@@ -209,26 +209,28 @@ export default function QuizResultsPage({ params }: PageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10 md:px-10 space-y-8 animate-in fade-in duration-300">
+    <div className="page-shell page-section max-w-4xl space-y-6 sm:space-y-8 animate-in fade-in duration-300">
       
       {/* Top Banner */}
-      <div className="space-y-4">
-        <p className="text-sm uppercase tracking-[0.28em] text-brand-lime font-bold">Quiz Results</p>
-        <h1 className="text-4xl font-extrabold text-brand-indigo font-heading">{results.quizName}</h1>
+      <div className="space-y-2 sm:space-y-3 min-w-0">
+        <p className="text-xs sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.28em] text-brand-lime font-bold">Quiz Results</p>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-indigo font-heading tracking-tight break-words">
+          {results.quizName}
+        </h1>
       </div>
 
       {/* Main Score Board */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
         {/* Score Card */}
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
-          <Trophy className="h-10 w-10 text-brand-lime animate-bounce" />
+        <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
+          <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-brand-lime" />
           <span className="text-xs uppercase tracking-wider font-extrabold text-brand-muted">Final Score</span>
-          <span className="text-4xl font-black text-brand-indigo">{results.score} / {results.total}</span>
+          <span className="text-3xl sm:text-4xl font-black text-brand-indigo tabular-nums">{results.score} / {results.total}</span>
         </div>
 
         {/* Percentage Card */}
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
-          <div className="text-4xl font-black text-brand-indigo">{results.percentage}%</div>
+        <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
+          <div className="text-3xl sm:text-4xl font-black text-brand-indigo tabular-nums">{results.percentage}%</div>
           <span className="text-xs uppercase tracking-wider font-extrabold text-brand-muted">Accuracy</span>
           <span className="text-[10px] text-brand-muted font-bold">
             {results.percentage >= 70 ? 'Excellent work!' : results.percentage >= 50 ? 'Good try, keep studying' : 'Need more practice'}
@@ -236,28 +238,28 @@ export default function QuizResultsPage({ params }: PageProps) {
         </div>
 
         {/* Time Card */}
-        <div className="glass-panel rounded-3xl p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
-          <Clock className="h-10 w-10 text-brand-indigo" />
+        <div className="glass-panel rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col items-center justify-center text-center space-y-2 border border-brand-indigo/10">
+          <Clock className="h-8 w-8 sm:h-10 sm:w-10 text-brand-indigo" />
           <span className="text-xs uppercase tracking-wider font-extrabold text-brand-muted">Time Taken</span>
-          <span className="text-2xl font-bold text-brand-indigo">{formatTime(results.timeTaken)}</span>
+          <span className="text-xl sm:text-2xl font-bold text-brand-indigo tabular-nums">{formatTime(results.timeTaken)}</span>
         </div>
       </div>
 
       {/* Quiz Difficulty Rating */}
-      <div className="rounded-3xl border border-brand-indigo/10 bg-white p-8 shadow-sm space-y-6">
+      <div className="rounded-2xl sm:rounded-3xl border border-brand-indigo/10 bg-white p-5 sm:p-6 md:p-8 shadow-sm space-y-5 sm:space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-brand-indigo font-heading">Rate the Quiz Difficulty</h2>
-            <p className="text-sm text-brand-muted">Share your experience so future learners can judge how challenging this quiz is.</p>
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-brand-indigo font-heading">Rate the Quiz Difficulty</h2>
+            <p className="text-sm text-brand-muted mt-1 leading-relaxed">Share your experience so future learners can judge how challenging this quiz is.</p>
           </div>
           {ratingSaved && (
-            <div className="rounded-full bg-brand-success/10 px-4 py-2 text-sm font-semibold text-brand-success">
+            <div className="rounded-full bg-brand-success/10 px-4 py-2 text-sm font-semibold text-brand-success w-fit shrink-0">
               Difficulty rating saved
             </div>
           )}
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-4">
           {ratingOptions.map((option) => {
             const active = selectedRating === option;
             return (
@@ -265,7 +267,7 @@ export default function QuizResultsPage({ params }: PageProps) {
                 key={option}
                 type="button"
                 onClick={() => setSelectedRating(option)}
-                className={`rounded-3xl border px-4 py-3 text-sm font-semibold transition-all ${
+                className={`rounded-2xl sm:rounded-3xl border px-3 sm:px-4 py-3 text-sm font-semibold transition-all ${
                   active
                     ? 'border-brand-indigo bg-brand-indigo/10 text-brand-indigo shadow-sm'
                     : 'border-brand-indigo/10 bg-white text-brand-indigo/80 hover:border-brand-indigo/20 hover:bg-brand-indigo/5'
@@ -284,7 +286,7 @@ export default function QuizResultsPage({ params }: PageProps) {
             type="button"
             onClick={handleSaveRating}
             disabled={!selectedRating || isSubmitting}
-            className="inline-flex items-center justify-center rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-indigo/90 disabled:opacity-50"
+            className="inline-flex items-center justify-center rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-indigo/90 disabled:opacity-50 w-full sm:w-auto"
           >
             {isSubmitting ? 'Saving Rating...' : 'Submit Difficulty Rating'}
           </button>
@@ -318,12 +320,12 @@ export default function QuizResultsPage({ params }: PageProps) {
       </div>
 
       {/* Leaderboard Submission Prompt */}
-      <div className="rounded-3xl border border-brand-indigo/10 bg-white p-8 shadow-sm space-y-6">
-        <h2 className="text-2xl font-bold text-brand-indigo font-heading">Leaderboard Rankings</h2>
+      <div className="rounded-2xl sm:rounded-3xl border border-brand-indigo/10 bg-white p-5 sm:p-6 md:p-8 shadow-sm space-y-5 sm:space-y-6">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-brand-indigo font-heading">Leaderboard Rankings</h2>
         
         {submitSuccess ? (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-brand-success/15 border border-brand-success/20 text-brand-success">
-            <CheckCircle className="h-5 w-5 shrink-0" />
+          <div className="flex items-start sm:items-center gap-3 p-4 rounded-xl bg-brand-success/15 border border-brand-success/20 text-brand-success">
+            <CheckCircle className="h-5 w-5 shrink-0 mt-0.5 sm:mt-0" />
             <span className="font-semibold text-sm">Your score has been saved! Check out where you stand on the leaderboard.</span>
           </div>
         ) : (
@@ -337,13 +339,13 @@ export default function QuizResultsPage({ params }: PageProps) {
                 <button
                   onClick={() => handleSaveScore(user!.id)}
                   disabled={isSubmitting}
-                  className="px-6 py-3 rounded-full bg-brand-indigo text-white font-semibold text-sm hover:bg-brand-indigo/90 transition-all disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-3 rounded-full bg-brand-indigo text-white font-semibold text-sm hover:bg-brand-indigo/90 transition-all disabled:opacity-50"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit to Leaderboard'}
                 </button>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-5 sm:space-y-6">
                 <p className="text-brand-muted text-sm leading-relaxed">
                   Study tools are guest-first, but appearing on the competitive campus leaderboard requires account verification. Create a profile now to post your score!
                 </p>
@@ -393,33 +395,33 @@ export default function QuizResultsPage({ params }: PageProps) {
 
                     {submitError && <p className="text-brand-danger text-xs font-bold">{submitError}</p>}
 
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 rounded-full bg-brand-indigo text-white font-bold text-xs hover:bg-brand-indigo/90 transition-all disabled:opacity-50"
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-brand-indigo text-white font-bold text-xs hover:bg-brand-indigo/90 transition-all disabled:opacity-50"
                       >
                         {isSubmitting ? 'Registering...' : 'Sign Up & Save Score'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowSignUpForm(false)}
-                        className="px-5 py-2.5 rounded-full border border-brand-indigo/10 font-bold text-xs text-brand-indigo hover:bg-brand-indigo/5 transition-all"
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-full border border-brand-indigo/10 font-bold text-xs text-brand-indigo hover:bg-brand-indigo/5 transition-all"
                       >
                         Cancel
                       </button>
                     </div>
                   </form>
                 ) : (
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
                     <button
                       onClick={() => setShowSignUpForm(true)}
-                      className="px-6 py-3 rounded-full bg-brand-lime text-brand-indigo font-bold text-sm hover:bg-brand-lime/90 transition-all flex items-center gap-2 group shadow-lg shadow-brand-lime/10"
+                      className="w-full sm:w-auto px-6 py-3 rounded-full bg-brand-lime text-brand-indigo font-bold text-sm hover:bg-brand-lime/90 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-brand-lime/10"
                     >
                       <span>Create Account to Save Score</span>
                       <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                     </button>
-                    <Link href="/auth/login" className="px-6 py-3 rounded-full border border-brand-indigo/10 font-semibold text-sm text-brand-indigo hover:bg-brand-indigo/5 transition-all">
+                    <Link href="/auth/login" className="w-full sm:w-auto text-center px-6 py-3 rounded-full border border-brand-indigo/10 font-semibold text-sm text-brand-indigo hover:bg-brand-indigo/5 transition-all">
                       Already have an account? Log In
                     </Link>
                   </div>
@@ -431,15 +433,15 @@ export default function QuizResultsPage({ params }: PageProps) {
       </div>
 
       {/* Navigation Controls */}
-      <div className="flex flex-wrap items-center gap-4">
-        <Link href={`/quizzes/${results.quizId}`} className="flex items-center gap-2 rounded-full border border-brand-indigo/10 bg-white px-5 py-3 text-sm font-semibold text-brand-indigo transition hover:bg-brand-indigo/5 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
+        <Link href={`/quizzes/${results.quizId}`} className="flex items-center justify-center gap-2 rounded-full border border-brand-indigo/10 bg-white px-5 py-3 text-sm font-semibold text-brand-indigo transition hover:bg-brand-indigo/5 shadow-sm">
           <RotateCcw className="h-4 w-4" />
           Retake Quiz
         </Link>
-        <Link href="/leaderboard" className="rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-indigo/90 shadow-md">
+        <Link href="/leaderboard" className="text-center rounded-full bg-brand-indigo px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-indigo/90 shadow-md">
           Go to Leaderboard
         </Link>
-        <Link href="/dashboard" className="text-sm font-semibold text-brand-indigo hover:underline ml-auto">
+        <Link href="/dashboard" className="text-center text-sm font-semibold text-brand-indigo hover:underline sm:ml-auto py-2">
           Back to Dashboard
         </Link>
       </div>
