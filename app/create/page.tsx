@@ -4,6 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, Wand2, FileText, Loader2, BookOpen, ClipboardList, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import Tesseract from 'tesseract.js';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure the PDF.js worker source
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export default function CreatePage() {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
@@ -17,6 +22,7 @@ export default function CreatePage() {
   const [numQuestions, setNumQuestions] = useState(10);
   const [isDragging, setIsDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState('Analyzing & generating…');
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [successData, setSuccessData] = useState<{ id: string, type: string } | null>(null);
@@ -30,7 +36,6 @@ export default function CreatePage() {
       return;
     }
 
-    // Fetch credits
     const fetchCredits = async () => {
       try {
         const res = await fetch('/api/credits');
@@ -69,17 +74,72 @@ export default function CreatePage() {
       'application/pdf', 
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'text/plain'
+      'text/plain',
+      'image/jpeg',
+      'image/png',
+      'image/webp'
     ];
-    if (!validTypes.includes(selectedFile.type)) {
-      setError('Unsupported file type. Please upload PDF, DOCX, PPTX, or TXT.');
+    if (!validTypes.includes(selectedFile.type) && !/\.(jpe?g|png|webp|pdf|docx|pptx|txt)$/i.test(selectedFile.name)) {
+      setError('Unsupported file type. Please upload PDF, DOCX, PPTX, TXT, or Images (JPG, PNG).');
       return;
     }
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      setError('File size exceeds 10MB limit.');
+    if (selectedFile.size > 15 * 1024 * 1024) {
+      setError('File size exceeds 15MB limit.');
       return;
     }
     setFile(selectedFile);
+  };
+
+  // Extract text from standard standalone images
+  const extractTextFromImage = async (imageFile: File): Promise<string> => {
+    try {
+      setLoadingStatus('Extracting text from image via OCR...');
+      const worker = await Tesseract.createWorker('eng');
+      const ret = await worker.recognize(imageFile);
+      await worker.terminate();
+      return ret.data.text;
+    } catch (err) {
+      console.error('OCR error:', err);
+      throw new Error('Failed to extract text from image material.');
+    }
+  };
+
+  // Extract text from scanned/image-based PDFs using PDF.js + Tesseract
+  const extractTextFromPDF = async (pdfFile: File): Promise<string> => {
+    try {
+      setLoadingStatus('Reading PDF pages...');
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdfDoc = await loadingTask.promise;
+      const numPages = pdfDoc.numPages;
+
+      const worker = await Tesseract.createWorker('eng');
+      let fullExtractedText = '';
+
+      for (let i = 1; i <= numPages; i++) {
+        setLoadingStatus(`OCR processing PDF page ${i} of ${numPages}...`);
+        const page = await pdfDoc.getPage(i);
+        
+        // Render at 2x scale for higher OCR recognition accuracy
+        const viewport = page.getViewport({ scale: 2.0 });
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        if (context) {
+          await page.render({ canvasContext: context, viewport, canvas }).promise;
+          const { data: { text } } = await worker.recognize(canvas);
+          fullExtractedText += `\n--- Page ${i} ---\n` + text;
+        }
+      }
+
+      await worker.terminate();
+      return fullExtractedText;
+    } catch (err) {
+      console.error('PDF OCR error:', err);
+      throw new Error('Failed to parse and read text from the scanned PDF.');
+    }
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -100,15 +160,38 @@ export default function CreatePage() {
     setIsGenerating(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-    if (title) formData.append('title', title);
-    if (course && type === 'quiz') formData.append('course', course);
-    if (level && type === 'quiz') formData.append('level', level);
-    if (type === 'quiz') formData.append('numQuestions', numQuestions.toString());
-
     try {
+      const formData = new FormData();
+      let processedText = '';
+
+      // Check if file is an image
+      if (file.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(file.name)) {
+        processedText = await extractTextFromImage(file);
+      } 
+      // Check if file is a PDF (we route it through OCR conversion just in case it's scanned)
+      else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+        processedText = await extractTextFromPDF(file);
+      }
+
+      if (processedText) {
+        if (processedText.trim().length < 10) {
+          throw new Error('No legible text found in this document/image. Please ensure it is clear.');
+        }
+        // Send the extracted text content to your backend route
+        const textBlob = new Blob([processedText], { type: 'text/plain' });
+        formData.append('file', textBlob, `${file.name}.txt`);
+      } else {
+        // Fallback for native text formats like docx, txt, pptx
+        formData.append('file', file);
+      }
+
+      setLoadingStatus('Analyzing document with AI...');
+      formData.append('type', type);
+      if (title) formData.append('title', title);
+      if (course && type === 'quiz') formData.append('course', course);
+      if (level && type === 'quiz') formData.append('level', level);
+      if (type === 'quiz') formData.append('numQuestions', numQuestions.toString());
+
       const res = await fetch('/api/generate', {
         method: 'POST',
         body: formData,
@@ -126,6 +209,7 @@ export default function CreatePage() {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
       setIsGenerating(false);
+      setLoadingStatus('Analyzing & generating…');
     }
   };
 
@@ -181,7 +265,7 @@ export default function CreatePage() {
             Create with AI
           </h1>
           <p className="text-brand-muted text-sm max-w-md leading-relaxed">
-            Upload your lecture notes, slides, or documents and let AI generate study materials instantly.
+            Upload your lecture notes, scanned textbooks, documents, or photos to generate study materials instantly.
           </p>
         </div>
         {credits !== null && (
@@ -230,7 +314,7 @@ export default function CreatePage() {
         <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
           <div>
             <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-indigo mb-2">
-              Source Document
+              Source Document (Supports Scanned PDFs & Images)
             </label>
             <div
               onDragOver={handleDragOver}
@@ -247,7 +331,7 @@ export default function CreatePage() {
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept=".pdf,.docx,.pptx,.txt"
+                accept=".pdf,.docx,.pptx,.txt,image/*"
                 onChange={(e) => {
                   if (e.target.files && e.target.files.length > 0) {
                     handleFileChange(e.target.files[0]);
@@ -271,7 +355,7 @@ export default function CreatePage() {
                   </div>
                   <div>
                     <p className="font-bold text-brand-indigo text-sm sm:text-base">Click to upload or drag & drop</p>
-                    <p className="text-xs text-brand-muted mt-1">PDF, DOCX, PPTX, or TXT (Max 10MB)</p>
+                    <p className="text-xs text-brand-muted mt-1">PDF, Scanned PDFs, DOCX, PPTX, TXT, or Images (Max 15MB)</p>
                   </div>
                 </div>
               )}
@@ -350,7 +434,7 @@ export default function CreatePage() {
           {isGenerating ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin shrink-0" />
-              <span className="truncate">Analyzing & generating…</span>
+              <span className="truncate">{loadingStatus}</span>
               <div className="absolute inset-0 bg-white/10 animate-pulse" />
             </>
           ) : (
