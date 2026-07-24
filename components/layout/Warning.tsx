@@ -8,22 +8,20 @@ export default function WarningCard() {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    // Check if permanently dismissed
-    const isPermanentlyDismissed = localStorage.getItem('myle_warning_joined') === 'true'
-    if (isPermanentlyDismissed) return
-
     const checkAndShow = () => {
+      // Check if permanently dismissed first
+      const isPermanentlyDismissed = localStorage.getItem('myle_warning_joined') === 'true'
+      if (isPermanentlyDismissed) {
+        setIsOpen(false)
+        return
+      }
+
       const lastDismissed = sessionStorage.getItem('myle_session_warning_dismissed_at')
       if (lastDismissed) {
         // Check if 5 minutes have passed since last dismissal
         const timePassed = Date.now() - parseInt(lastDismissed, 10)
         if (timePassed >= 5 * 60 * 1000) {
           setIsOpen(true)
-        }
-
-        const joinedAlready = localStorage.getItem('myle_warning_joined')
-        if (joinedAlready === 'true') {
-          setIsOpen(false)
         }
       } else {
         // Initial show after 1 minute (60000ms)
@@ -38,6 +36,9 @@ export default function WarningCard() {
         }
       }
     }
+
+    // Run check immediately on mount
+    checkAndShow()
 
     const interval = setInterval(checkAndShow, 10000) // check every 10s
     return () => clearInterval(interval)
@@ -106,6 +107,7 @@ export default function WarningCard() {
                   href={WHATSAPP_CHANNEL_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handlePermanentDismiss}
                   className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-brand-lime text-brand-indigo font-semibold hover:bg-brand-lime/90 transition-all shadow-lg shadow-brand-lime/20 group text-sm"
                 >
                   <span className="flex items-center gap-2">
@@ -120,6 +122,7 @@ export default function WarningCard() {
                   href={WHATSAPP_GROUP_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handlePermanentDismiss}
                   className="flex items-center justify-between w-full px-4 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/15 transition-all border border-white/10 group text-sm"
                 >
                   <span className="flex items-center gap-2">

@@ -8,6 +8,7 @@ import AuthPrompt from "@/components/layout/AuthPrompt";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWARegistration from "@/components/PWARegistration";
+import PWAInstallBanner from "@/components/PWAInstallBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -100,6 +101,7 @@ export default function RootLayout({
           <Analytics />
           <WarningCard />
           <AuthPrompt />
+          <PWAInstallBanner />
           <PWARegistration />
         </ThemeProvider>
       </body>
