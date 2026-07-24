@@ -4,11 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadCloud, Wand2, FileText, Loader2, BookOpen, ClipboardList, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import Tesseract from 'tesseract.js';
-import * as pdfjsLib from 'pdfjs-dist';
-
-// Configure the PDF.js worker source
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export default function CreatePage() {
   const { isAuthenticated, user, loading: authLoading } = useAuth();
@@ -90,10 +85,11 @@ export default function CreatePage() {
     setFile(selectedFile);
   };
 
-  // Extract text from standard standalone images
+  // Extract text from standard standalone images dynamically on client
   const extractTextFromImage = async (imageFile: File): Promise<string> => {
     try {
       setLoadingStatus('Extracting text from image via OCR...');
+      const Tesseract = (await import('tesseract.js')).default;
       const worker = await Tesseract.createWorker('eng');
       const ret = await worker.recognize(imageFile);
       await worker.terminate();
@@ -104,15 +100,19 @@ export default function CreatePage() {
     }
   };
 
-  // Extract text from scanned/image-based PDFs using PDF.js + Tesseract
+  // Extract text from scanned/image-based PDFs using dynamic PDF.js + Tesseract imports
   const extractTextFromPDF = async (pdfFile: File): Promise<string> => {
     try {
       setLoadingStatus('Reading PDF pages...');
+      const pdfjsLib = await import('pdfjs-dist');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+
       const arrayBuffer = await pdfFile.arrayBuffer();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdfDoc = await loadingTask.promise;
       const numPages = pdfDoc.numPages;
 
+      const Tesseract = (await import('tesseract.js')).default;
       const worker = await Tesseract.createWorker('eng');
       let fullExtractedText = '';
 
@@ -120,7 +120,6 @@ export default function CreatePage() {
         setLoadingStatus(`OCR processing PDF page ${i} of ${numPages}...`);
         const page = await pdfDoc.getPage(i);
         
-        // Render at 2x scale for higher OCR recognition accuracy
         const viewport = page.getViewport({ scale: 2.0 });
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -164,12 +163,9 @@ export default function CreatePage() {
       const formData = new FormData();
       let processedText = '';
 
-      // Check if file is an image
       if (file.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(file.name)) {
         processedText = await extractTextFromImage(file);
-      } 
-      // Check if file is a PDF (we route it through OCR conversion just in case it's scanned)
-      else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
+      } else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
         processedText = await extractTextFromPDF(file);
       }
 
@@ -177,11 +173,9 @@ export default function CreatePage() {
         if (processedText.trim().length < 10) {
           throw new Error('No legible text found in this document/image. Please ensure it is clear.');
         }
-        // Send the extracted text content to your backend route
         const textBlob = new Blob([processedText], { type: 'text/plain' });
         formData.append('file', textBlob, `${file.name}.txt`);
       } else {
-        // Fallback for native text formats like docx, txt, pptx
         formData.append('file', file);
       }
 
@@ -236,12 +230,14 @@ export default function CreatePage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <button
+            type="button"
             onClick={() => router.push(`/${successData.type === 'flashcard' ? 'flashcards' : 'quizzes'}/${successData.id}`)}
             className="w-full sm:w-auto rounded-xl bg-brand-indigo px-6 py-3 font-bold text-white transition hover:bg-brand-indigo/90 shadow-md shadow-brand-indigo/20"
           >
             View {successData.type === 'flashcard' ? 'Deck' : 'Quiz'}
           </button>
           <button
+            type="button"
             onClick={() => {
               setSuccessData(null);
               setFile(null);
