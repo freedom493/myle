@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UploadCloud, Wand2, FileText, Loader2, BookOpen, ClipboardList, CheckCircle } from 'lucide-react';
+import { UploadCloud, Wand2, FileText, Loader2, BookOpen, ClipboardList, CheckCircle, Bell, Compass, ArrowRight, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function CreatePage() {
@@ -18,11 +18,30 @@ export default function CreatePage() {
   const [isDragging, setIsDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStatus, setLoadingStatus] = useState('Analyzing & generating…');
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [successData, setSuccessData] = useState<{ id: string, type: string } | null>(null);
+  
+  // UX State for background exploration / floating pill & notifications
+  const [isExploring, setIsExploring] = useState(false);
+  const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Timer counter during generation
+  useEffect(() => {
+    let interval: any;
+    if (isGenerating) {
+      setElapsedSeconds(0);
+      interval = setInterval(() => {
+        setElapsedSeconds((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -85,7 +104,32 @@ export default function CreatePage() {
     setFile(selectedFile);
   };
 
-  // Extract text from standard standalone images dynamically on client
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      alert('This browser does not support desktop notifications.');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      setNotificationEnabled(true);
+      new Notification('MYLE Notifications Enabled', {
+        body: "We'll notify you right when your study material is ready!",
+        icon: '/favicon.ico'
+      });
+    } else {
+      alert('Notification permissions were denied.');
+    }
+  };
+
+  const triggerCompletionNotification = (typeStr: string) => {
+    if (notificationEnabled && Notification.permission === 'granted') {
+      new Notification('Generation Complete! 🎉', {
+        body: `Your AI-powered ${typeStr} is ready to view. Tap to open.`,
+        icon: '/favicon.ico'
+      });
+    }
+  };
+
   const extractTextFromImage = async (imageFile: File): Promise<string> => {
     try {
       setLoadingStatus('Extracting text from image via OCR...');
@@ -100,7 +144,6 @@ export default function CreatePage() {
     }
   };
 
-  // Extract text from scanned/image-based PDFs using dynamic PDF.js + Tesseract imports
   const extractTextFromPDF = async (pdfFile: File): Promise<string> => {
     try {
       setLoadingStatus('Reading PDF pages...');
@@ -157,6 +200,7 @@ export default function CreatePage() {
     }
 
     setIsGenerating(true);
+    setIsExploring(false);
     setError(null);
 
     try {
@@ -198,6 +242,7 @@ export default function CreatePage() {
       }
 
       setCredits(data.credits_remaining);
+      triggerCompletionNotification(data.type);
       setSuccessData({ id: data.id, type: data.type });
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
@@ -253,7 +298,87 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="page-shell page-section max-w-3xl space-y-8 sm:space-y-10 animate-in fade-in duration-500">
+    <div className="page-shell page-section max-w-3xl space-y-8 sm:space-y-10 animate-in fade-in duration-500 relative pb-24">
+      {/* BACKGROUND GENERATION WAITING OVERLAY OR EXPLORE VIEW */}
+      {isGenerating && (
+        <div className="fixed inset-0 z-50 bg-brand-indigo/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+          <div className="glass-panel max-w-md w-full rounded-3xl p-8 space-y-6 bg-white/95 shadow-2xl border border-brand-lime/30">
+            <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-lime/20 text-brand-indigo">
+              <Loader2 className="h-10 w-10 animate-spin text-brand-indigo" />
+              <Wand2 className="absolute h-5 w-5 text-brand-lime animate-pulse" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="font-heading text-xl sm:text-2xl font-extrabold text-brand-indigo">
+                Crafting Your {type === 'flashcard' ? 'Flashcard Deck' : 'Practice Quiz'}...
+              </h2>
+              <p className="text-xs sm:text-sm text-brand-muted font-medium min-h-[2rem]">
+                {loadingStatus}
+              </p>
+            </div>
+
+            {/* Time Elapsed & Estimation Indicator */}
+            <div className="rounded-2xl bg-brand-surface p-4 border border-brand-indigo/5 flex items-center justify-between">
+              <div className="text-left">
+                <p className="text-xs font-bold text-brand-muted uppercase tracking-wider">Time Elapsed</p>
+                <p className="font-mono text-lg font-bold text-brand-indigo tabular-nums">{elapsedSeconds}s</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-bold text-brand-muted uppercase tracking-wider">Estimated Wait</p>
+                <p className="font-mono text-lg font-bold text-brand-lime drop-shadow-sm">15 - 45s</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsExploring(true);
+                  router.push('/dashboard');
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-brand-indigo px-5 py-3 font-bold text-sm text-white transition hover:bg-brand-indigo/90 shadow-md shadow-brand-indigo/20"
+              >
+                <Compass className="h-4 w-4 text-brand-lime" />
+                <span>Explore Other Contents</span>
+                <ArrowRight className="h-4 w-4 opacity-70" />
+              </button>
+
+              <button
+                type="button"
+                onClick={requestNotificationPermission}
+                className={`w-full flex items-center justify-center gap-2 rounded-xl border px-5 py-3 font-bold text-sm transition ${
+                  notificationEnabled 
+                    ? 'border-brand-success/30 bg-brand-success/10 text-brand-success' 
+                    : 'border-brand-indigo/15 bg-brand-surface text-brand-indigo hover:bg-brand-indigo/5'
+                }`}
+              >
+                <Bell className="h-4 w-4" />
+                <span>{notificationEnabled ? 'Notifications Enabled ✓' : 'Get Notified When It’s Done'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Widget if User Explores Dashboard while generating */}
+      {isExploring && isGenerating && (
+        <div className="fixed bottom-6 right-6 z-40 bg-brand-indigo text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-brand-lime/40 animate-bounce">
+          <Loader2 className="h-5 w-5 animate-spin text-brand-lime shrink-0" />
+          <div className="text-xs">
+            <p className="font-bold">Generating {type}...</p>
+            <p className="text-brand-muted text-[10px]">{elapsedSeconds}s elapsed</p>
+          </div>
+          <button 
+            type="button"
+            onClick={() => setIsExploring(false)}
+            className="ml-2 bg-white/10 p-1 rounded-lg hover:bg-white/20 transition"
+          >
+            <X className="h-4 w-4 text-white" />
+          </button>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-2 min-w-0">
           <h1 className="font-heading text-2xl sm:text-3xl md:text-4xl font-extrabold text-brand-indigo flex items-center gap-2 sm:gap-3">
@@ -424,21 +549,11 @@ export default function CreatePage() {
 
         <button
           type="submit"
-          disabled={isGenerating || !file || (credits !== null && credits <= 0)}
+          disabled={!file || (credits !== null && credits <= 0)}
           className="w-full flex items-center justify-center gap-2 rounded-2xl bg-brand-indigo px-4 sm:px-8 py-3.5 sm:py-4 font-bold text-sm sm:text-base text-white transition-all hover:bg-brand-indigo/90 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-indigo/15 relative overflow-hidden group"
         >
-          {isGenerating ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin shrink-0" />
-              <span className="truncate">{loadingStatus}</span>
-              <div className="absolute inset-0 bg-white/10 animate-pulse" />
-            </>
-          ) : (
-            <>
-              <Wand2 className="h-5 w-5 text-brand-lime shrink-0" />
-              <span>Generate {type === 'flashcard' ? 'Deck' : 'Quiz'}</span>
-            </>
-          )}
+          <Wand2 className="h-5 w-5 text-brand-lime shrink-0" />
+          <span>Generate {type === 'flashcard' ? 'Deck' : 'Quiz'}</span>
         </button>
       </form>
     </div>
