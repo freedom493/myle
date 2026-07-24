@@ -143,6 +143,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Type must be "flashcard" or "quiz"' }, { status: 400 });
     }
 
+    const numQuestionsRaw = formData.get('numQuestions');
+    let numQuestions = 10;
+    if (type === 'quiz') {
+      if (numQuestionsRaw) {
+        numQuestions = parseInt(numQuestionsRaw as string, 10);
+        if (isNaN(numQuestions) || numQuestions < 10 || numQuestions > 30) {
+          return NextResponse.json({ error: 'Number of questions must be between 10 and 30' }, { status: 400 });
+        }
+      }
+    }
+
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 });
     }
@@ -170,7 +181,7 @@ export async function POST(req: Request) {
     const isFlashcard = type === 'flashcard';
     const prompt = isFlashcard
       ? 'Analyze this document thoroughly and extract the most important concepts, terms, definitions, and principles to create comprehensive study flashcards. Each flashcard should have a clear, concise term and a detailed, exam-ready definition. Generate at least 15 flashcards covering all major topics.'
-      : 'Analyze this document thoroughly and create a comprehensive multiple-choice quiz to test understanding of the key concepts. Each question should have exactly 4 options with one correct answer and a detailed explanation. Generate at least 10 challenging questions covering all major topics. Set an appropriate time limit in Seconds.';
+      : `Analyze this document thoroughly and create a comprehensive multiple-choice quiz to test understanding of the key concepts. Each question should have exactly 4 options with one correct answer and a detailed explanation. Generate exactly ${numQuestions} challenging questions covering all major topics. Set an appropriate time limit in Seconds, with a minimum of 300 seconds (5 minutes).`;
 
     // Call Gemini
     const response = await ai.models.generateContent({
@@ -208,7 +219,9 @@ export async function POST(req: Request) {
         ...q,
         id: q.id || `q${i + 1}`,
       }));
-      if (!jsonData.timeLimit) jsonData.timeLimit = Math.max(10, jsonData.questions.length * 2);
+      // Enforce minimum time limit of 5 minutes (300 seconds)
+      const parsedTimeLimit = Number(jsonData.timeLimit);
+      jsonData.timeLimit = isNaN(parsedTimeLimit) || parsedTimeLimit < 300 ? 300 : parsedTimeLimit;
     }
 
     // Save to Supabase

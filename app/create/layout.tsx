@@ -9,3 +9,11 @@ export const metadata: Metadata = {
     url: 'https://myle247.vercel.app/create'
   }
 }
+
+export default function CreateLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
+}

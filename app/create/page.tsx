@@ -14,6 +14,7 @@ export default function CreatePage() {
   const [title, setTitle] = useState('');
   const [course, setCourse] = useState('');
   const [level, setLevel] = useState('');
+  const [numQuestions, setNumQuestions] = useState(10);
   const [isDragging, setIsDragging] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +92,10 @@ export default function CreatePage() {
       setError('No generation credits remaining.');
       return;
     }
+    if (type === 'quiz' && (numQuestions < 10 || numQuestions > 30)) {
+      setError('Number of questions must be between 10 and 30.');
+      return;
+    }
 
     setIsGenerating(true);
     setError(null);
@@ -101,6 +106,7 @@ export default function CreatePage() {
     if (title) formData.append('title', title);
     if (course && type === 'quiz') formData.append('course', course);
     if (level && type === 'quiz') formData.append('level', level);
+    if (type === 'quiz') formData.append('numQuestions', numQuestions.toString());
 
     try {
       const res = await fetch('/api/generate', {
@@ -285,7 +291,7 @@ export default function CreatePage() {
             </div>
 
             {type === 'quiz' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs font-bold text-brand-muted mb-1">Course Code (Optional)</label>
                   <input
@@ -310,6 +316,20 @@ export default function CreatePage() {
                     <option value="400L">400L</option>
                     <option value="500L">500L</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-brand-muted mb-1">Number of Questions (10-30)</label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={30}
+                    value={numQuestions}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      setNumQuestions(isNaN(val) ? 10 : val);
+                    }}
+                    className="w-full rounded-xl border border-brand-indigo/10 bg-white px-3 sm:px-4 py-3 text-sm font-semibold text-brand-text outline-none focus:border-brand-indigo focus:ring-1 focus:ring-brand-indigo"
+                  />
                 </div>
               </div>
             )}

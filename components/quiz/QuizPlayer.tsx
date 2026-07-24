@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Timer, ChevronRight, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 import { updateStreak, saveBestScore } from '@/lib/localStorage';
@@ -35,8 +35,17 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
   const [answers, setAnswers] = useState<(number | null)[]>(new Array(quiz.questions.length).fill(null));
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(quiz.timeLimit);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const currentQuestion = quiz.questions[currentIdx];
+
+  // Ref to hold the latest state values to avoid stale closures in the timer interval callback
+  const stateRef = useRef({ score, selectedOpt, hasSubmitted, currentQuestion, timeRemaining });
+  stateRef.current = { score, selectedOpt, hasSubmitted, currentQuestion, timeRemaining };
 
   useEffect(() => {
+    if (isFinished) return;
+
     if (timeRemaining <= 0) {
       finishQuiz(true);
       return;
@@ -48,9 +57,7 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
 
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeRemaining]);
-
-  const currentQuestion = quiz.questions[currentIdx];
+  }, [timeRemaining, isFinished]);
 
   const handleSelectOption = (idx: number) => {
     if (hasSubmitted) return;
@@ -84,13 +91,22 @@ export default function QuizPlayer({ quiz }: QuizPlayerProps) {
   };
 
   const finishQuiz = (timedOut: boolean) => {
+    if (isFinished) return;
+    setIsFinished(true);
+
+    const currentScore = stateRef.current.score;
+    const currentSelectedOpt = stateRef.current.selectedOpt;
+    const currentHasSubmitted = stateRef.current.hasSubmitted;
+    const currQuestion = stateRef.current.currentQuestion;
+    const currTimeRemaining = stateRef.current.timeRemaining;
+
     const finalScore =
-      score +
-      (selectedOpt === currentQuestion.correctIndex && !hasSubmitted ? 1 : 0);
+      currentScore +
+      (currentSelectedOpt === currQuestion.correctIndex && !currentHasSubmitted ? 1 : 0);
     const finalPercentage = Math.round(
       (finalScore / quiz.questions.length) * 100,
     );
-    const remaining = timedOut ? 0 : Math.max(timeRemaining, 0);
+    const remaining = timedOut ? 0 : Math.max(currTimeRemaining, 0);
     const timeTaken = quiz.timeLimit - remaining;
 
     updateStreak();
