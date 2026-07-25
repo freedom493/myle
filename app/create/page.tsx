@@ -23,22 +23,20 @@ export default function CreatePage() {
   const [credits, setCredits] = useState<number | null>(null);
   const [successData, setSuccessData] = useState<{ id: string, type: string } | null>(null);
   
-  // UX State for background exploration / floating pill & notifications
+  // UX State
   const [isExploring, setIsExploring] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Timer counter during generation
+  // Robust Timer counter during generation
   useEffect(() => {
-    let interval: any;
+    let interval: NodeJS.Timeout;
     if (isGenerating) {
       setElapsedSeconds(0);
       interval = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
       }, 1000);
-    } else {
-      clearInterval(interval);
     }
     return () => clearInterval(interval);
   }, [isGenerating]);
@@ -94,7 +92,7 @@ export default function CreatePage() {
       'image/webp'
     ];
     if (!validTypes.includes(selectedFile.type) && !/\.(jpe?g|png|webp|pdf|docx|pptx|txt)$/i.test(selectedFile.name)) {
-      setError('Unsupported file type. Please upload PDF, DOCX, PPTX, TXT, or Images (JPG, PNG).');
+      setError('Unsupported file type. Please upload PDF, DOCX, PPTX, TXT, or Images.');
       return;
     }
     if (selectedFile.size > 15 * 1024 * 1024) {
@@ -106,64 +104,78 @@ export default function CreatePage() {
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-      alert('This browser does not support desktop notifications.');
+      alert('This browser does not support notifications.');
       return;
     }
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      setNotificationEnabled(true);
-      new Notification('MYLE Notifications Enabled', {
-        body: "We'll notify you right when your study material is ready!",
-        icon: '/favicon.ico'
-      });
-    } else {
-      alert('Notification permissions were denied.');
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setNotificationEnabled(true);
+        new Notification('MYLE Notifications Enabled', {
+          body: "We'll notify you right when your study material is ready!",
+          icon: '/favicon.ico'
+        });
+      } else {
+        alert('Notification permissions were denied.');
+      }
+    } catch (err) {
+      console.error('Notification error:', err);
     }
   };
 
   const triggerCompletionNotification = (typeStr: string) => {
-    if (notificationEnabled && Notification.permission === 'granted') {
-      new Notification('Generation Complete! 🎉', {
-        body: `Your AI-powered ${typeStr} is ready to view. Tap to open.`,
-        icon: '/favicon.ico'
-      });
+    if (notificationEnabled && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification('Generation Complete! 🎉', {
+          body: `Your AI-powered ${typeStr} is ready to view. Tap to open.`,
+          icon: '/favicon.ico'
+        });
+      } catch (e) {
+        console.error('Failed to trigger notification', e);
+      }
     }
   };
 
   const extractTextFromImage = async (imageFile: File): Promise<string> => {
-    try {
-      setLoadingStatus('Extracting text from image via OCR...');
-      const Tesseract = (await import('tesseract.js')).default;
-      const worker = await Tesseract.createWorker('eng');
-      const ret = await worker.recognize(imageFile);
-      await worker.terminate();
-      return ret.data.text;
-    } catch (err) {
-      console.error('OCR error:', err);
-      throw new Error('Failed to extract text from image material.');
-    }
+    setLoadingStatus('Extracting text from image via OCR...');
+    const Tesseract = (await import('tesseract.js')).default;
+    const worker = await Tesseract.createWorker('eng');
+    const ret = await worker.recognize(imageFile);
+    await worker.terminate();
+    return ret.data.text;
   };
 
-  const extractTextFromPDF = async (pdfFile: File): Promise<string> => {
-    try {
-      setLoadingStatus('Reading PDF pages...');
-      const pdfjsLib = await import('pdfjs-dist');
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  // 🚀 HYBRID SMART PDF PARSER (Instant Text Extraction + Conditional OCR Fallback)
+  const processPDF = async (pdfFile: File): Promise<string> => {
+    setLoadingStatus('Reading PDF structure...');
+    const pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-      const arrayBuffer = await pdfFile.arrayBuffer();
-      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-      const pdfDoc = await loadingTask.promise;
-      const numPages = pdfDoc.numPages;
+    const arrayBuffer = await pdfFile.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdfDoc = await loadingTask.promise;
+    const numPages = pdfDoc.numPages;
 
-      const Tesseract = (await import('tesseract.js')).default;
-      const worker = await Tesseract.createWorker('eng');
-      let fullExtractedText = '';
+    let fullExtractedText = '';
+    let tesseractWorker: any = null;
 
-      for (let i = 1; i <= numPages; i++) {
-        setLoadingStatus(`OCR processing PDF page ${i} of ${numPages}...`);
-        const page = await pdfDoc.getPage(i);
+    for (let i = 1; i <= numPages; i++) {
+      setLoadingStatus(`Processing page ${i} of ${numPages}...`);
+      const page = await pdfDoc.getPage(i);
+      const textContent = await page.getTextContent();
+      
+      let pageText = textContent.items.map((item: any) => item.str).join(' ');
+
+      // If page has almost no text, it's likely a scanned image page -> Fallback to OCR for this page only
+      if (pageText.trim().length < 25) {
+        setLoadingStatus(`Running smart OCR on scanned page ${i} of ${numPages}...`);
         
-        const viewport = page.getViewport({ scale: 2.0 });
+        if (!tesseractWorker) {
+          const Tesseract = (await import('tesseract.js')).default;
+          tesseractWorker = await Tesseract.createWorker('eng');
+        }
+
+        const viewport = page.getViewport({ scale: 1.5 }); // optimized scale for speed & accuracy
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
         canvas.width = viewport.width;
@@ -171,17 +183,19 @@ export default function CreatePage() {
 
         if (context) {
           await page.render({ canvasContext: context, viewport, canvas }).promise;
-          const { data: { text } } = await worker.recognize(canvas);
-          fullExtractedText += `\n--- Page ${i} ---\n` + text;
+          const { data: { text } } = await tesseractWorker.recognize(canvas);
+          pageText = text;
         }
       }
 
-      await worker.terminate();
-      return fullExtractedText;
-    } catch (err) {
-      console.error('PDF OCR error:', err);
-      throw new Error('Failed to parse and read text from the scanned PDF.');
+      fullExtractedText += `\n--- Page ${i} ---\n` + pageText;
     }
+
+    if (tesseractWorker) {
+      await tesseractWorker.terminate();
+    }
+
+    return fullExtractedText;
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -210,7 +224,10 @@ export default function CreatePage() {
       if (file.type.startsWith('image/') || /\.(jpe?g|png|webp)$/i.test(file.name)) {
         processedText = await extractTextFromImage(file);
       } else if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) {
-        processedText = await extractTextFromPDF(file);
+        processedText = await processPDF(file);
+      } else {
+        // For docx/txt, pass directly or extract standard text
+        processedText = await file.text();
       }
 
       if (processedText) {
@@ -299,7 +316,7 @@ export default function CreatePage() {
 
   return (
     <div className="page-shell page-section max-w-3xl space-y-8 sm:space-y-10 animate-in fade-in duration-500 relative pb-24">
-      {/* BACKGROUND GENERATION WAITING OVERLAY OR EXPLORE VIEW */}
+      {/* BACKGROUND GENERATION WAITING OVERLAY */}
       {isGenerating && (
         <div className="fixed inset-0 z-50 bg-brand-indigo/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
           <div className="glass-panel max-w-md w-full rounded-3xl p-8 space-y-6 bg-white/95 shadow-2xl border border-brand-lime/30">
@@ -325,7 +342,7 @@ export default function CreatePage() {
               </div>
               <div className="text-right">
                 <p className="text-xs font-bold text-brand-muted uppercase tracking-wider">Estimated Wait</p>
-                <p className="font-mono text-lg font-bold text-brand-lime drop-shadow-sm">15 - 45s</p>
+                <p className="font-mono text-lg font-bold text-brand-lime drop-shadow-sm">120 - 300s</p>
               </div>
             </div>
 
@@ -361,7 +378,7 @@ export default function CreatePage() {
         </div>
       )}
 
-      {/* Floating Widget if User Explores Dashboard while generating */}
+      {/* Floating Widget if User Explores Dashboard */}
       {isExploring && isGenerating && (
         <div className="fixed bottom-6 right-6 z-40 bg-brand-indigo text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-brand-lime/40 animate-bounce">
           <Loader2 className="h-5 w-5 animate-spin text-brand-lime shrink-0" />
@@ -386,7 +403,7 @@ export default function CreatePage() {
             Create with AI
           </h1>
           <p className="text-brand-muted text-sm max-w-md leading-relaxed">
-            Upload your lecture notes, scanned textbooks, documents, or photos to generate study materials instantly.
+            Upload your lecture notes, documents, or scanned textbooks to generate study materials instantly.
           </p>
         </div>
         {credits !== null && (
@@ -435,7 +452,7 @@ export default function CreatePage() {
         <div className="glass-panel rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
           <div>
             <label className="block text-xs font-extrabold uppercase tracking-wider text-brand-indigo mb-2">
-              Source Document (Supports Scanned PDFs & Images)
+              Source Document (Instant PDF text parsing + Smart OCR for Scans)
             </label>
             <div
               onDragOver={handleDragOver}
@@ -476,7 +493,7 @@ export default function CreatePage() {
                   </div>
                   <div>
                     <p className="font-bold text-brand-indigo text-sm sm:text-base">Click to upload or drag & drop</p>
-                    <p className="text-xs text-brand-muted mt-1">PDF, Scanned PDFs, DOCX, PPTX, TXT, or Images (Max 15MB)</p>
+                    <p className="text-xs text-brand-muted mt-1">PDF, DOCX, PPTX, TXT, or Images (Max 15MB)</p>
                   </div>
                 </div>
               )}
