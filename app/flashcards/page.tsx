@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, Zap, Clock, Globe, Sparkles, Filter } from "lucide-react";
+import { ArrowRight, BookOpen, Zap, Clock, Globe, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Metadata } from "next";
 
@@ -20,7 +20,7 @@ const localDecks = [
     description: "Core terms, institutions and case law for Nigerian law students.",
     cards: 3,
     difficulty: "Intermediate",
-    category: "Law",
+    category: "law",
   },
   {
     id: "legal-methods",
@@ -28,19 +28,54 @@ const localDecks = [
     description: "Study common research methods, definitions, and exam-ready summaries.",
     cards: 22,
     difficulty: "Intermediate",
-    category: "Law",
+    category: "law",
   },
 ];
 
-export default async function FlashcardsPage() {
+interface FlashcardsPageProps {
+  searchParams: Promise<{ category?: string }>;
+}
+
+export default async function FlashcardsPage({ searchParams }: FlashcardsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const activeCategory = resolvedSearchParams?.category || "all";
+
   const supabase = await createClient();
   const { data: publicDecks } = await supabase
     .from("generations")
-    .select("id, title, description, json_data, created_at")
+    .select("id, title, description, json_data, created_at, course")
     .eq("visibility", "public")
     .eq("type", "flashcard")
     .order("created_at", { ascending: false })
     .limit(12);
+
+  // Derive unique available categories from local decks and public decks
+  const categoriesSet = new Set<string>();
+  localDecks.forEach(deck => {
+    if (deck.category) categoriesSet.add(deck.category.toLowerCase());
+  });
+  
+  publicDecks?.forEach(deck => {
+    // If you store category or course, pull it here. Falling back to course or generic community tag
+    if (deck.course) {
+      categoriesSet.add(deck.course.toLowerCase());
+    }
+  });
+
+  const availableCategories = ["all", ...Array.from(categoriesSet)];
+
+  // Filter local decks based on active category
+  const filteredLocalDecks = activeCategory === "all" 
+    ? localDecks 
+    : localDecks.filter(deck => deck.category?.toLowerCase() === activeCategory);
+
+  // Filter public decks based on active category
+  const filteredPublicDecks = publicDecks?.filter(deck => {
+    if (activeCategory === "all") return true;
+    const matchesCourse = deck.course?.toLowerCase() === activeCategory;
+    const matchesTitle = deck.title.toLowerCase().includes(activeCategory);
+    return matchesCourse || matchesTitle;
+  }) || [];
 
   return (
     <div className="page-shell page-section space-y-10 sm:space-y-12 pb-24">
@@ -68,68 +103,90 @@ export default async function FlashcardsPage() {
         </Link>
       </header>
 
-      {/* Featured Curated Decks */}
-      <section className="space-y-5">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-brand-indigo font-heading flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-brand-indigo" />
-            Curated Study Decks
-          </h2>
-          <span className="text-xs font-semibold text-brand-muted bg-brand-indigo/5 px-2.5 py-1 rounded-lg">
-            Essential
-          </span>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {localDecks.map((deck) => (
-            <Link 
-              key={deck.id} 
-              href={`/flashcards/${deck.id}`} 
-              className="study-card group block relative overflow-hidden bg-white hover:border-brand-lime/50 transition-all duration-300"
+      {/* Category Navigation Bar */}
+      <nav className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {availableCategories.map((cat) => {
+          const isActive = activeCategory === cat;
+          return (
+            <Link
+              key={cat}
+              href={`/flashcards${cat === 'all' ? '' : `?category=${encodeURIComponent(cat)}`}`}
+              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                isActive
+                  ? 'bg-brand-indigo text-white shadow-md shadow-brand-indigo/20'
+                  : 'bg-white text-brand-muted border border-brand-indigo/10 hover:border-brand-indigo/30 hover:text-brand-indigo'
+              }`}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-lime/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform" />
-              
-              <div className="flex items-start justify-between gap-3 mb-4 relative z-10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/5 text-brand-indigo group-hover:bg-brand-indigo group-hover:text-brand-lime transition-colors">
-                  <BookOpen className="h-6 w-6" />
-                </div>
-                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-brand-lime/20 text-brand-indigo">
-                  {deck.difficulty}
-                </span>
-              </div>
+              {cat}
+            </Link>
+          );
+        })}
+      </nav>
 
-              <div className="relative z-10">
-                <h3 className="text-lg font-bold text-brand-indigo mb-1.5 group-hover:text-brand-indigo/80 transition-colors">
-                  {deck.title}
-                </h3>
-                <p className="text-sm text-brand-muted line-clamp-2 mb-6 leading-relaxed">
-                  {deck.description}
-                </p>
+      {/* Featured Curated Decks */}
+      {filteredLocalDecks.length > 0 && (
+        <section className="space-y-5">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-brand-indigo font-heading flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-brand-indigo" />
+              Curated Study Decks
+            </h2>
+            <span className="text-xs font-semibold text-brand-muted bg-brand-indigo/5 px-2.5 py-1 rounded-lg">
+              Essential
+            </span>
+          </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-brand-indigo/5">
-                  <div className="flex items-center gap-4 text-xs font-bold text-brand-muted">
-                    <span className="inline-flex items-center gap-1.5 text-brand-indigo">
-                      <Zap className="h-3.5 w-3.5 text-brand-lime" />
-                      {deck.cards} cards
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" />
-                      ~{Math.ceil(deck.cards * 0.5)} min
-                    </span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {filteredLocalDecks.map((deck) => (
+              <Link 
+                key={deck.id} 
+                href={`/flashcards/${deck.id}`} 
+                className="study-card group block relative overflow-hidden bg-white hover:border-brand-lime/50 transition-all duration-300"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-lime/5 rounded-bl-full pointer-events-none group-hover:scale-110 transition-transform" />
+                
+                <div className="flex items-start justify-between gap-3 mb-4 relative z-10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-indigo/5 text-brand-indigo group-hover:bg-brand-indigo group-hover:text-brand-lime transition-colors">
+                    <BookOpen className="h-6 w-6" />
                   </div>
-
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-indigo group-hover:translate-x-1 transition-transform">
-                    Start <ArrowRight className="h-3.5 w-3.5" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-brand-lime/20 text-brand-indigo">
+                    {deck.difficulty}
                   </span>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+
+                <div className="relative z-10">
+                  <h3 className="text-lg font-bold text-brand-indigo mb-1.5 group-hover:text-brand-indigo/80 transition-colors">
+                    {deck.title}
+                  </h3>
+                  <p className="text-sm text-brand-muted line-clamp-2 mb-6 leading-relaxed">
+                    {deck.description}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-brand-indigo/5">
+                    <div className="flex items-center gap-4 text-xs font-bold text-brand-muted">
+                      <span className="inline-flex items-center gap-1.5 text-brand-indigo">
+                        <Zap className="h-3.5 w-3.5 text-brand-lime" />
+                        {deck.cards} cards
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        ~{Math.ceil(deck.cards * 0.5)} min
+                      </span>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-brand-indigo group-hover:translate-x-1 transition-transform">
+                      Start <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Community Decks Section */}
-      {publicDecks && publicDecks.length > 0 && (
+      {filteredPublicDecks.length > 0 && (
         <section className="space-y-5 pt-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-brand-indigo font-heading flex items-center gap-2">
@@ -142,7 +199,7 @@ export default async function FlashcardsPage() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {publicDecks.map((deck) => {
+            {filteredPublicDecks.map((deck) => {
               const data = deck.json_data as { cards?: unknown[] };
               const cardsCount = data?.cards?.length || 0;
 
@@ -179,6 +236,13 @@ export default async function FlashcardsPage() {
             })}
           </div>
         </section>
+      )}
+
+      {filteredLocalDecks.length === 0 && filteredPublicDecks.length === 0 && (
+        <div className="text-center py-16 bg-white rounded-3xl border border-brand-indigo/5 space-y-3">
+          <p className="text-base font-bold text-brand-indigo">No decks found in this category.</p>
+          <p className="text-xs text-brand-muted">Try selecting another category or create your own custom deck with AI.</p>
+        </div>
       )}
 
       {/* AI Generator Banner */}

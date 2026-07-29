@@ -180,7 +180,7 @@ export async function POST(req: Request) {
     // Build prompt
     const isFlashcard = type === 'flashcard';
     const prompt = isFlashcard
-      ? 'Analyze this document thoroughly and extract the most important concepts, terms, definitions, and principles to create comprehensive study flashcards. Each flashcard should have a clear, concise term and a detailed, exam-ready definition. Generate at least 15 flashcards covering all major topics.'
+      ? 'Analyze this document thoroughly and extract the most important concepts, terms, definitions, and principles to create comprehensive study flashcards. Each flashcard should have a clear, concise term and a detailed, exam-ready definition. Generate at least 15 - 30 flashcards covering all major topics.'
       : `Analyze this document thoroughly and create a comprehensive multiple-choice quiz to test understanding of the key concepts. Each question should have exactly 4 options with one correct answer and a detailed explanation. Generate exactly ${numQuestions} challenging questions covering all major topics. Set an appropriate time limit in Seconds, with a minimum of 300 seconds (5 minutes).`;
 
     // Call Gemini
