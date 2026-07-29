@@ -9,19 +9,24 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const type = url.searchParams.get('type');
     const visibility = url.searchParams.get('visibility');
+    const category = url.searchParams.get('category');
     const publicOnly = url.searchParams.get('public') === 'true';
 
     // Public browsing - no auth required
     if (publicOnly) {
       let query = supabase
         .from('generations')
-        .select('id, user_id, type, title, description, source_filename, visibility, created_at, json_data')
+        .select('id, user_id, type, title, description, source_filename, visibility, category, created_at, json_data')
         .eq('visibility', 'public')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (type && ['flashcard', 'quiz'].includes(type)) {
         query = query.eq('type', type);
+      }
+
+      if (category) {
+        query = query.eq('category', category);
       }
 
       const { data, error } = await query;
@@ -31,7 +36,7 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
       }
 
-      // Add counts from json_data
+      // Add counts from json_data and map category
       const items = (data || []).map((item) => {
         const jsonData = item.json_data as Record<string, unknown>;
         const cards = jsonData?.cards as unknown[];
@@ -44,6 +49,7 @@ export async function GET(req: Request) {
           description: item.description,
           source_filename: item.source_filename,
           visibility: item.visibility,
+          category: item.category || 'General',
           created_at: item.created_at,
           count: item.type === 'flashcard'
             ? (cards?.length || 0)
@@ -61,7 +67,7 @@ export async function GET(req: Request) {
 
     let query = supabase
       .from('generations')
-      .select('id, type, title, description, source_filename, visibility, created_at, json_data')
+      .select('id, type, title, description, source_filename, visibility, category, created_at, json_data')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -71,6 +77,10 @@ export async function GET(req: Request) {
 
     if (visibility && ['public', 'private'].includes(visibility)) {
       query = query.eq('visibility', visibility);
+    }
+
+    if (category) {
+      query = query.eq('category', category);
     }
 
     const { data, error } = await query;
@@ -91,6 +101,7 @@ export async function GET(req: Request) {
         description: item.description,
         source_filename: item.source_filename,
         visibility: item.visibility,
+        category: item.category || 'General',
         created_at: item.created_at,
         count: item.type === 'flashcard'
           ? (cards?.length || 0)

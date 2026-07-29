@@ -41,7 +41,7 @@ export default async function FlashcardsPage({ searchParams }: FlashcardsPagePro
   const supabase = await createClient();
   const { data: publicDecks } = await supabase
     .from("generations")
-    .select("id, title, description, json_data, created_at, course")
+    .select("id, title, description, json_data, created_at, category")
     .eq("visibility", "public")
     .eq("type", "flashcard")
     .order("created_at", { ascending: false })
@@ -54,9 +54,8 @@ export default async function FlashcardsPage({ searchParams }: FlashcardsPagePro
   });
   
   publicDecks?.forEach(deck => {
-    // If you store category or course, pull it here. Falling back to course or generic community tag
-    if (deck.course) {
-      categoriesSet.add(deck.course.toLowerCase());
+    if (deck.category) {
+      categoriesSet.add(deck.category.toLowerCase());
     }
   });
 
@@ -70,9 +69,9 @@ export default async function FlashcardsPage({ searchParams }: FlashcardsPagePro
   // Filter public decks based on active category
   const filteredPublicDecks = publicDecks?.filter(deck => {
     if (activeCategory === "all") return true;
-    const matchesCourse = deck.course?.toLowerCase() === activeCategory;
+    const matchesCategory = deck.category?.toLowerCase() === activeCategory;
     const matchesTitle = deck.title.toLowerCase().includes(activeCategory);
-    return matchesCourse || matchesTitle;
+    return matchesCategory || matchesTitle;
   }) || [];
 
   return (
