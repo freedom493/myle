@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy policy",
+  description:
+    "How MYLE handles guest local storage, signed-in accounts, quiz scores, and your personal data.",
+  path: "/privacy",
+});
+
 export default function PrivacyPage() {
   return (
     <div className="page-shell page-section">

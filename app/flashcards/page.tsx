@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, Zap, Clock, Globe, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: 'Flashcards | MYLE',
-  description: 'View and Study with Flashcards',
-  openGraph: {
-    title: 'MYLE | Flashcards',
-    description: 'View and Study with Flashcards',
-    url: 'https://myle247.vercel.app/flashcards'
-  }
-}
+export const metadata: Metadata = pageMetadata({
+  title: "Flashcards",
+  description:
+    "Browse and study flashcard decks for Nigerian university courses — law, GST, and community-shared materials.",
+  path: "/flashcards",
+});
 
 const localDecks = [
   {

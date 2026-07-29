@@ -9,6 +9,14 @@ import { Analytics } from "@vercel/analytics/react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWARegistration from "@/components/PWARegistration";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_OG_IMAGE,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+  absoluteUrl,
+} from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,38 +37,69 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "MYLE | Your Student OS",
-  description:
-    "Guest-first study tools, quizzes, flashcards, and leaderboard for Nigerian university students.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} | ${SITE_TAGLINE}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "MYLE",
+    "Nigerian university",
+    "study tools",
+    "flashcards",
+    "quizzes",
+    "leaderboard",
+    "student OS",
+    "exam prep",
+    "UNN",
+    "UNEC",
+  ],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "MYLE",
+    title: SITE_NAME,
   },
   verification: {
     google: "oTzkE0PYdRbIsuuNLDmshQafwLhaFPoUHc_QJpZF_oY",
   },
   alternates: {
-    canonical: "https://myle247.vercel.app",
+    canonical: "/",
   },
   openGraph: {
-    title: "MYLE | Study Smarter, Excel on Campus",
+    title: `${SITE_NAME} | Study Smarter, Excel on Campus`,
     description:
-      "Flashcards, quizzes, and leaderboards built specifically for Nigerian university students",
-    url: "https://myle247.vercel.app",
-    siteName: "MYLE",
+      "Flashcards, quizzes, and leaderboards built specifically for Nigerian university students.",
+    url: absoluteUrl("/"),
+    siteName: SITE_NAME,
     images: [
       {
-        url: "https://myle247.vercel.app/og-image.png",
+        url: DEFAULT_OG_IMAGE,
         width: 1200,
         height: 630,
         alt: "MYLE Student OS Preview",
       },
     ],
-    locale: "en-NG",
+    locale: "en_NG",
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} | Study Smarter, Excel on Campus`,
+    description:
+      "Flashcards, quizzes, and leaderboards built specifically for Nigerian university students.",
+    images: [DEFAULT_OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  category: "education",
 };
 
 export default function RootLayout({

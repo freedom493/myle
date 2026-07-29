@@ -1,17 +1,14 @@
 import Link from "next/link";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { Smartphone, Download, ArrowLeft, Sparkles } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Get the App | MYLE",
-  description: "Download the MYLE app for easier accessibility on the go.",
-  openGraph: {
-    title: "MYLE | Download the App",
-    description:
-      "Get the MYLE app today to study smarter and faster on campus.",
-    url: "https://myle247.vercel.app/download",
-  },
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Get the app",
+  description:
+    "Install MYLE as a PWA or get notified when the native app launches for on-the-go campus study.",
+  path: "/download",
+});
 
 export default function AppDownloadPage() {
   return (

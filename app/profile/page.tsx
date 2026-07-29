@@ -41,7 +41,6 @@ export default function ProfilePage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
-    // Read local streak regardless of auth
     setLocalStreak(getStreak());
     setCompletedDecks(getCompletedDeck());
   }, []);
@@ -55,7 +54,6 @@ export default function ProfilePage() {
       const supabase = createClient();
       
       try {
-        // Fetch profile
         const { data: profileData, error: profileErr } = await supabase
           .from('profiles')
           .select('display_name, university, department, level')
@@ -75,7 +73,6 @@ export default function ProfilePage() {
           });
         }
 
-        // Fetch scores
         const { data: scoresData, error: scoresErr } = await supabase
           .from('quiz_scores')
           .select('id, quiz_name, score, total, percentage, created_at')
@@ -85,7 +82,6 @@ export default function ProfilePage() {
         if (scoresErr) throw scoresErr;
         if (scoresData) setScores(scoresData);
 
-        // fetch cloud completed decks
         const { data: statsData, error: statsErr } = await supabase
           .from('user_stats')
           .select('completed_decks')
@@ -93,13 +89,11 @@ export default function ProfilePage() {
           .single();
 
         if (!statsErr && statsData && typeof statsData.completed_decks === 'number') {
-          // reconcile local vs cloud: prefer the higher count and sync both sides
           const local = getCompletedDeck();
           const cloud = statsData.completed_decks || 0;
           const finalCount = Math.max(local, cloud);
 
           if (finalCount !== cloud) {
-            // update cloud
             await supabase
               .from('user_stats')
               .upsert({ user_id: userId, completed_decks: finalCount }, { onConflict: 'user_id' });
@@ -122,7 +116,6 @@ export default function ProfilePage() {
     fetchProfileAndScores();
   }, [isAuthenticated, user]);
 
-  // Listen for completed deck updates and sync to cloud when authenticated
   useEffect(() => {
     async function onCompleted(e: Event) {
       const detail = (e as CustomEvent).detail as number;
@@ -189,7 +182,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="page-shell page-section space-y-6 sm:space-y-8">
+    <div className="page-shell page-section space-y-6 sm:space-y-8 pb-24 sm:pb-12">
       
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -209,27 +202,32 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
-        {/* Left Column: Stats & Setup */}
-        <div className="md:col-span-1 space-y-3 sm:space-y-4">
-          {/* Streak Card */}
-          <div className="stat-tile flex items-center gap-3.5">
-            <div className="h-11 w-11 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
-              <Flame className="h-5 w-5" />
+      {/* Main Container Layout */}
+      <div className="grid gap-6 md:grid-cols-3">
+        
+        {/* Left Column: Stats & Settings */}
+        <div className="md:col-span-1 space-y-4">
+          
+          {/* Stats Row for Mobile / Stacked */}
+          <div className="grid grid-cols-2 md:grid-cols-1 gap-3 sm:gap-4">
+            <div className="stat-tile flex items-center gap-3.5">
+              <div className="h-11 w-11 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Study streak</p>
+                <h3 className="text-lg sm:text-xl font-black text-brand-indigo tabular-nums">{localStreak} days</h3>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Study streak</p>
-              <h3 className="text-xl font-black text-brand-indigo tabular-nums">{localStreak} days</h3>
-            </div>
-          </div>
 
-          <div className="stat-tile flex items-center gap-3.5">
-            <div className="h-11 w-11 rounded-xl bg-brand-indigo/8 flex items-center justify-center text-brand-indigo shrink-0">
-              <BookOpen className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Completed decks</p>
-              <h3 className="text-xl font-black text-brand-indigo tabular-nums">{completedDecks}</h3>
+            <div className="stat-tile flex items-center gap-3.5">
+              <div className="h-11 w-11 rounded-xl bg-brand-indigo/8 flex items-center justify-center text-brand-indigo shrink-0">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-extrabold text-brand-muted uppercase tracking-wider">Completed decks</p>
+                <h3 className="text-lg sm:text-xl font-black text-brand-indigo tabular-nums">{completedDecks}</h3>
+              </div>
             </div>
           </div>
 
@@ -237,7 +235,7 @@ export default function ProfilePage() {
           {!isAuthenticated && (
             <div className="rounded-2xl bg-brand-indigo text-white p-5 space-y-3 shadow-lg">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-lime/15 text-brand-lime">
-                <Trophy className="h-4.5 w-4.5 h-[18px] w-[18px]" />
+                <Trophy className="h-[18px] w-[18px]" />
               </div>
               <h3 className="font-bold text-base font-heading">Sync your progress</h3>
               <p className="text-xs text-white/75 leading-relaxed">
@@ -339,7 +337,7 @@ export default function ProfilePage() {
           <div className="stat-tile space-y-4">
             <div className="flex items-center justify-between gap-3 pb-3 border-b border-brand-indigo/5">
               <h3 className="font-bold text-brand-indigo text-base font-heading flex items-center gap-2">
-                <BookOpen className="h-4.5 w-4.5 h-[18px] w-[18px] text-brand-lime" />
+                <BookOpen className="h-[18px] w-[18px] text-brand-lime" />
                 Quiz history
               </h3>
               {isAuthenticated && (

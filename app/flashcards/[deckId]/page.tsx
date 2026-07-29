@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { promises as fs } from "fs";
-import path from "path";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen } from "lucide-react";
+import type { Metadata } from "next";
 import FlashcardsComponent from "@/components/layout/FlashcardsComponent";
-import { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { getDeck, humanizeSlug } from "@/lib/study-content";
 
 interface DeckPageProps {
   params: Promise<{
@@ -12,62 +12,45 @@ interface DeckPageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: DeckPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: DeckPageProps): Promise<Metadata> {
   const { deckId } = await params;
+  const deck = await getDeck(deckId);
 
-  return {
-    title: deckId
+  if (!deck) {
+    return pageMetadata({
+      title: "Deck not found",
+      description: "This flashcard deck could not be found on MYLE.",
+      path: `/flashcards/${deckId}`,
+      noIndex: true,
+    });
   }
+
+  const name = deck.name || humanizeSlug(deckId);
+  const cardCount = Array.isArray(deck.cards) ? deck.cards.length : 0;
+  const description =
+    (typeof deck.description === "string" && deck.description) ||
+    `Study the “${name}” flashcard deck on MYLE${cardCount ? ` — ${cardCount} cards` : ""}.`;
+
+  return pageMetadata({
+    title: name,
+    description,
+    path: `/flashcards/${deckId}`,
+  });
 }
 
 export default async function DeckPage({ params }: DeckPageProps) {
-  const resolvedParams = await params;
-  const { deckId } = resolvedParams;
-
-  let deckData: Record<string, unknown> | null = null;
-  try {
-    const filePath = path.join(
-      process.cwd(),
-      "content",
-      "flashcards",
-      `${deckId}.json`,
-    );
-    const fileContent = await fs.readFile(filePath, "utf8");
-    deckData = JSON.parse(fileContent);
-  } catch {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRegex.test(deckId)) {
-      try {
-        const { createClient } = await import("@/lib/supabase/server");
-        const supabase = await createClient();
-        const { data, error } = await supabase
-          .from("generations")
-          .select("json_data")
-          .eq("id", deckId)
-          .single();
-
-        if (data && !error) {
-          deckData = data.json_data as Record<string, unknown>;
-        }
-      } catch (dbErr) {
-        console.error("Failed to load from DB:", dbErr);
-      }
-    }
-  }
+  const { deckId } = await params;
+  const deckData = await getDeck(deckId);
 
   if (!deckData) {
     return notFound();
   }
 
-  const cards = (deckData.cards as unknown[]) || [];
+  const cards = deckData.cards || [];
   const cardCount = cards.length;
-  const deckName =
-    (deckData.name as string) ||
-    deckId
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
+  const deckName = deckData.name || humanizeSlug(deckId);
 
   return (
     <div className="page-shell page-section max-w-3xl !mx-auto space-y-5 sm:space-y-6">
@@ -100,7 +83,12 @@ export default async function DeckPage({ params }: DeckPageProps) {
         )}
       </header>
 
-      <FlashcardsComponent deckData={deckData} />
+      <FlashcardsComponent 
+        deckData={{
+          ...deckData,
+          cards: (deckData.cards as { term?: string; definition?: string }[]) || []
+        }} 
+      />
     </div>
   );
 }

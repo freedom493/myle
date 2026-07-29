@@ -1,3 +1,13 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Terms of service",
+  description:
+    "Terms of use for MYLE study tools, accounts, leaderboards, and acceptable use on campus.",
+  path: "/terms",
+});
+
 export default function TermsPage() {
   return (
     <div className="page-shell page-section">

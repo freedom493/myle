@@ -1,9 +1,10 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ClipboardList } from "lucide-react";
+import type { Metadata } from "next";
 import QuizPlayer from "@/components/quiz/QuizPlayer";
+import { pageMetadata } from "@/lib/seo";
+import { getQuiz, humanizeSlug } from "@/lib/study-content";
 
 interface QuizPageProps {
   params: Promise<{
@@ -11,58 +12,54 @@ interface QuizPageProps {
   }>;
 }
 
-export default async function QuizPage({ params }: QuizPageProps) {
-  const resolvedParams = await params;
-  const { quizId } = resolvedParams;
+export async function generateMetadata({
+  params,
+}: QuizPageProps): Promise<Metadata> {
+  const { quizId } = await params;
+  const quiz = await getQuiz(quizId);
 
-  let quizData: Record<string, unknown> | null = null;
-  try {
-    const filePath = path.join(
-      process.cwd(),
-      "content",
-      "quizzes",
-      `${quizId}.json`,
-    );
-    const fileContent = await fs.readFile(filePath, "utf8");
-    quizData = JSON.parse(fileContent);
-  } catch {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (uuidRegex.test(quizId)) {
-      try {
-        const { createClient } = await import("@/lib/supabase/server");
-        const supabase = await createClient();
-        const { data, error } = await supabase
-          .from("generations")
-          .select("json_data")
-          .eq("id", quizId)
-          .single();
-
-        if (data && !error) {
-          quizData = data.json_data as Record<string, unknown>;
-        }
-      } catch (err) {
-        console.error("Failed to load from DB:", err);
-      }
-    }
+  if (!quiz) {
+    return pageMetadata({
+      title: "Quiz not found",
+      description: "This quiz could not be found on MYLE.",
+      path: `/quizzes/${quizId}`,
+      noIndex: true,
+    });
   }
+
+  const name = quiz.name || humanizeSlug(quizId);
+  const questionCount = Array.isArray(quiz.questions) ? quiz.questions.length : 0;
+  const description =
+    (typeof quiz.description === "string" && quiz.description) ||
+    `Take the “${name}” practice quiz on MYLE${questionCount ? ` — ${questionCount} questions` : ""}.`;
+
+  return pageMetadata({
+    title: name,
+    description,
+    path: `/quizzes/${quizId}`,
+  });
+}
+
+export default async function QuizPage({ params }: QuizPageProps) {
+  const { quizId } = await params;
+  const quizData = await getQuiz(quizId);
 
   if (!quizData) {
     return notFound();
   }
 
-  const questions = (quizData.questions as unknown[]) || [];
+  const questions = quizData.questions || [];
   const questionCount = questions.length;
   const timeLimitSec = Number(quizData.timeLimit) || 600;
   const timeLimitMin = Math.max(1, Math.round(timeLimitSec / 60));
 
-  // Ensure player gets a stable shape
   const playerQuiz = {
-    id: (quizData.id as string) || quizId,
-    name: (quizData.name as string) || "Practice Quiz",
-    description: (quizData.description as string) || "",
-    course: (quizData.course as string) || "",
-    level: (quizData.level as string) || "",
+    id: quizData.id || quizId,
+    name: quizData.name || "Practice Quiz",
+    description:
+      typeof quizData.description === "string" ? quizData.description : "",
+    course: typeof quizData.course === "string" ? quizData.course : "",
+    level: typeof quizData.level === "string" ? quizData.level : "",
     timeLimit: timeLimitSec,
     questions: questions as {
       id: string;

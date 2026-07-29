@@ -8,17 +8,15 @@ import {
   Globe,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { Metadata } from 'next';
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: 'Quizzes | MYLE',
-  description: 'Take Quizzes to master materials and prepare for exams',
-  openGraph: {
-    title: 'MYLE | QUizzes',
-    description: 'Take Quizzes to help you prepare for exams or create your own quiz from your material view our quiz builder',
-    url: 'https://myle247.vercel.app/quizzes'
-  }
-}
+export const metadata: Metadata = pageMetadata({
+  title: "Quizzes",
+  description:
+    "Timed practice quizzes for Nigerian university courses. Score instantly and climb the MYLE leaderboard.",
+  path: "/quizzes",
+});
 
 const localQuizzes = [
   {
