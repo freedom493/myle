@@ -227,3 +227,47 @@ DROP TRIGGER IF EXISTS on_auth_user_created_referral ON auth.users;
 CREATE TRIGGER on_auth_user_created_referral
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user_referral();
+
+-- 9. BLOG POSTS
+-- Stores blog posts created by users
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL UNIQUE,
+  content TEXT NOT NULL,
+  published BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_blog_posts_author_id ON blog_posts(author_id);
+CREATE INDEX idx_blog_posts_slug ON blog_posts(slug);
+CREATE INDEX idx_blog_posts_published ON blog_posts(published);
+
+ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read published posts
+CREATE POLICY "Anyone can read published posts"
+  ON blog_posts FOR SELECT
+  USING (published = true);
+
+-- Authors can read their own unpublished/draft posts
+CREATE POLICY "Authors can read own posts"
+  ON blog_posts FOR SELECT
+  USING (auth.uid() = author_id);
+
+-- Authors can insert their own posts
+CREATE POLICY "Authors can insert own posts"
+  ON blog_posts FOR INSERT
+  WITH CHECK (auth.uid() = author_id);
+
+-- Authors can update their own posts
+CREATE POLICY "Authors can update own posts"
+  ON blog_posts FOR UPDATE
+  USING (auth.uid() = author_id);
+
+-- Authors can delete their own posts
+CREATE POLICY "Authors can delete own posts"
+  ON blog_posts FOR DELETE
+  USING (auth.uid() = author_id);
