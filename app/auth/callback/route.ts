@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  const next = searchParams.get('next') ?? '/profile';
+  const next = searchParams.get('next') ?? '/dashboard';
 
   if (code) {
     const cookieStore = await cookies();
@@ -31,6 +31,21 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Check if the profile exists and is complete
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('university')
+          .eq('id', user.id)
+          .single();
+          
+        if (!profile || !profile.university) {
+          return NextResponse.redirect(`${origin}/setup`);
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
