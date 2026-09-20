@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Answer Rush - MYLE Study Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #170f3d; --card: rgba(23,15,61,.88); --line: rgba(255,255,255,.14);
+    --text: #fff8f0; --muted: #c7b9e6;
+    --A: #ff6b8b; --B: #5aa9ff; --C: #b98cff;
+    --good: #5ff0a0; --bad: #ff6b7a; --gold: #ffcf4a; --mint: #6ef0d0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #0d0a24; color: var(--text);
+    font-family: "Fredoka", ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  #app { position: relative; height: 100%; max-width: 480px; margin: 0 auto; overflow: hidden; background: var(--ink); }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  button { font: inherit; color: inherit; border: 0; cursor: pointer; touch-action: manipulation; }
+  button:active { transform: scale(.97); }
+  button:disabled { cursor: default; opacity: .45; transform: none; }
+  button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* HUD */
+  .hud { position: absolute; top: 0; left: 0; right: 0; z-index: 3; pointer-events: none; padding: max(10px, env(safe-area-inset-top)) 12px 0; }
+  .hud.off, .boost.off { visibility: hidden; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; height: 38px; }
+  .pill { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); font-size: 17px; font-weight: 600; }
+  .pill b { font-weight: 700; }
+  .coin { width: 16px; height: 16px; border-radius: 50%; background: var(--gold); box-shadow: inset 0 0 0 3px #e0a92a; }
+  .pause { pointer-events: auto; width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 13px; display: grid; place-items: center; padding: 0; }
+  .prog { height: 6px; margin: 8px 0 0; border-radius: 3px; background: rgba(255,255,255,.16); overflow: hidden; }
+  .prog i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .35s ease; }
+
+  .boost {
+    position: absolute; z-index: 3; left: 50%; transform: translateX(-50%);
+    bottom: max(18px, env(safe-area-inset-bottom)); width: 190px; height: 60px; border-radius: 30px;
+    background: var(--gold); color: #3a2500; font-size: 20px; font-weight: 700;
+    box-shadow: 0 6px 0 #c98a1e, 0 10px 24px rgba(0,0,0,.35);
+  }
+  .boost:active { transform: translateX(-50%) translateY(3px); box-shadow: 0 3px 0 #c98a1e; }
+  .boost.armed { background: #ffe9a3; }
+  .boost.nudge { animation: nudge 1s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateX(-50%) scale(1.06); } }
+
+  .tut { position: absolute; left: 14px; right: 14px; z-index: 3; pointer-events: none; display: none; padding: 10px 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); text-align: center; font-size: 16px; font-weight: 600; line-height: 1.3; }
+  .tut.on { display: block; }
+  .arrows { position: absolute; left: 0; right: 0; z-index: 3; pointer-events: none; display: none; justify-content: space-between; padding: 0 16px; }
+  .arrows.on { display: flex; }
+  .arrows div { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.5); font-size: 24px; animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.12); } }
+
+  /* Overlays */
+  .overlay { position: absolute; inset: 0; z-index: 6; display: none; background: rgba(23,15,61,.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .overlay.show { display: block; }
+  .sheet { height: 100%; overflow-y: auto; touch-action: pan-y; padding: max(22px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom)); }
+  .center { height: 100%; display: grid; place-items: center; padding: 16px; }
+  .panel { width: 100%; padding: 22px 18px 18px; border-radius: 24px; background: rgba(23,15,61,.96); border: 1px solid var(--line); text-align: center; }
+  .exit { display: inline-block; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
+  .exit[hidden] { display: none; }
+  h1 { margin: 0 0 6px; font-size: 38px; line-height: 1.05; font-weight: 700; }
+  h2 { margin: 22px 0 10px; font-size: 16px; font-weight: 600; color: var(--muted); }
+  .lead { margin: 0 0 18px; font-size: 16px; line-height: 1.4; color: var(--muted); font-weight: 500; }
+  .btn { width: 100%; padding: 14px 16px; border-radius: 16px; font-size: 16px; font-weight: 600; background: rgba(255,255,255,.12); }
+  .btn.main { background: var(--gold); color: #3a2500; }
+  .btns { display: grid; gap: 8px; }
+  .quick { width: 100%; padding: 16px 18px; border-radius: 20px; background: var(--gold); color: #3a2500; text-align: left; display: block; }
+  .quick b { display: block; font-size: 20px; }
+  .quick span { font-size: 14px; font-weight: 500; }
+
+  .level { margin-bottom: 10px; padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,.09); }
+  .level.locked .lvtop { opacity: .6; }
+  .lvtop { display: flex; align-items: center; gap: 12px; }
+  .tag { flex: none; width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,.14); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
+  .lvb { flex: 1; min-width: 0; }
+  .lvb b { display: block; font-size: 15px; font-weight: 600; line-height: 1.2; }
+  .lvb small { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .stars { flex: none; font-size: 17px; color: var(--gold); letter-spacing: 1px; }
+  .stars i, .bigstars i { font-style: normal; color: rgba(255,255,255,.2); }
+  .lvbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .sm { padding: 10px; border-radius: 12px; font-size: 14px; font-weight: 600; background: rgba(255,255,255,.12); }
+  .sm.play { background: var(--gold); color: #3a2500; }
+  .hintline { margin: 8px 0 0; font-size: 12.5px; color: var(--muted); }
+
+  details { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  summary { cursor: pointer; padding: 8px 0; }
+  textarea { width: 100%; height: 120px; margin: 4px 0 8px; padding: 10px; resize: none; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.06); color: var(--text); font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; user-select: text; -webkit-user-select: text; }
+  .err { margin: 0 0 8px; color: var(--bad); font-size: 13px; }
+  .err:empty { display: none; }
+
+  /* Study */
+  .sbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .sbar .back { flex: none; padding: 8px 14px; border-radius: 12px; background: rgba(255,255,255,.12); font-size: 14px; font-weight: 600; }
+  .sbar b { font-size: 17px; line-height: 1.2; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255,255,255,.08); margin-bottom: 14px; }
+  .seg button { padding: 9px; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 600; font-size: 14px; }
+  .seg button.on { background: var(--gold); color: #3a2500; }
+  .scard { padding: 18px 16px; border-radius: 20px; background: rgba(255,255,255,.09); margin-bottom: 12px; }
+  .scount { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .sq { margin: 0 0 14px; font-size: 20px; line-height: 1.3; font-weight: 600; }
+  .sa { padding: 12px; border-radius: 14px; background: rgba(95,240,160,.12); border: 1px solid rgba(95,240,160,.35); }
+  .sa small { color: var(--good); font-weight: 600; font-size: 12.5px; }
+  .sa b { display: block; font-size: 17px; margin: 2px 0 4px; }
+  .sa div { font-size: 14px; line-height: 1.4; color: var(--muted); font-weight: 500; }
+  .navrow { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .chk { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .stfoot { position: sticky; bottom: 0; padding-top: 10px; background: linear-gradient(transparent, rgba(23,15,61,.95) 30%); }
+
+  /* Results */
+  .bigstars { font-size: 44px; letter-spacing: 6px; color: var(--gold); margin: 4px 0 6px; line-height: 1; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+  .stat { padding: 10px 8px; border-radius: 14px; background: rgba(255,255,255,.08); }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .unlock { margin: 0 0 14px; padding: 10px 12px; border-radius: 14px; font-size: 14.5px; font-weight: 600; }
+  .unlock.yes { background: rgba(95,240,160,.15); color: var(--good); }
+  .unlock.no { background: rgba(255,255,255,.08); color: var(--muted); }
+  .rvtop { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 8px; }
+  .rvtop .h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  .chips { display: flex; gap: 6px; }
+  .chips button { padding: 6px 12px; border-radius: 99px; background: rgba(255,255,255,.1); font-size: 13px; font-weight: 600; }
+  .chips button.on { background: var(--gold); color: #3a2500; }
+  .qa { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 8px; text-align: left; }
+  .qa li { display: flex; gap: 10px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.08); font-size: 13.5px; line-height: 1.4; }
+  .qa li.ok { border-left: 4px solid var(--good); }
+  .qa li.bad { border-left: 4px solid var(--bad); }
+  .qa .mark { flex: none; font-weight: 700; font-size: 16px; }
+  .qa li.ok .mark { color: var(--good); }
+  .qa li.bad .mark { color: var(--bad); }
+  .qa b { display: block; font-weight: 600; margin-bottom: 2px; }
+  .qa .yours { color: var(--bad); font-weight: 600; }
+  .qa .ca { color: var(--good); font-weight: 600; }
+  .qa .ex { color: var(--muted); font-weight: 500; margin-top: 2px; }
+  .none { margin: 0 0 16px; color: var(--muted); font-size: 14px; text-align: left; }
+
+  @media (prefers-reduced-motion: reduce) { .arrows div, .boost.nudge { animation: none; } * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="c"></canvas>
+
+  <div class="hud off" id="hud">
+    <div class="row">
+      <div class="pill"><span class="coin"></span><b id="coins">0</b></div>
+      <div class="pill" id="qn">1 / 10</div>
+      <button class="pause" id="pauseBtn" aria-label="Pause">Ⅱ</button>
+    </div>
+    <div class="prog" aria-hidden="true"><i id="prog"></i></div>
+  </div>
+
+  <div class="tut" id="tut"></div>
+  <div class="arrows" id="arrows"><div>◀</div><div>▶</div></div>
+  <button class="boost off" id="boost">Boost</button>
+
+  <div class="overlay show" id="menu">
+    <div class="sheet">
+      <a class="exit" id="exitLink" href="/" target="_top" hidden>← Back to MYLE</a>
+      <h1>Answer Rush</h1>
+      <p class="lead">Study a level, then run through it. Pick a lane, tap Boost, and cross the gate with the right answer. Score 80% to unlock the next level.</p>
+      <button class="quick" id="quick"><b>Quick round</b><span id="quickSub">12 random questions from your unlocked levels</span></button>
+      <h2>Levels</h2>
+      <div id="levels"></div>
+      <details>
+        <summary>Add your own questions</summary>
+        <textarea id="ownJson" spellcheck="false" placeholder='[
+  {
+    "q": "Which organelle makes ATP?",
+    "options": ["Nucleus", "Mitochondrion", "Ribosome"],
+    "answer": 1,
+    "explain": "Optional one-line explanation."
+  }
+]'></textarea>
+        <div class="err" id="ownErr"></div>
+        <button class="btn" id="loadOwn">Load and play</button>
+      </details>
+    </div>
+  </div>
+
+  <div class="overlay" id="study">
+    <div class="sheet">
+      <div class="sbar"><button class="back" id="stBack">Back</button><b id="stTitle"></b></div>
+      <div class="seg" id="stSeg"><button data-m="cards" class="on">Flashcards</button><button data-m="all">View all</button></div>
+      <div id="stBody"></div>
+      <div class="stfoot"><button class="btn main" id="stStart">Start level</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="pauseO">
+    <div class="center"><div class="panel">
+      <h1 style="font-size:30px">Paused</h1>
+      <div class="btns" style="margin-top:16px">
+        <button class="btn main" id="resume">Resume</button>
+        <button class="btn" id="soundBtn">Sound on</button>
+        <button class="btn" id="quit">Back to levels</button>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="overlay" id="results">
+    <div class="sheet">
+      <div class="panel">
+        <h1 id="resTitle" style="font-size:30px"></h1>
+        <div class="bigstars" id="resStars"></div>
+        <div class="lead" id="resSub" style="margin:0"></div>
+        <div class="stats" id="resStats"></div>
+        <div class="unlock" id="resUnlock"></div>
+        <div class="rvtop"><p class="h3">Review</p><div class="chips" id="rvChips"><button data-f="all" class="on">All</button><button data-f="missed">Missed</button></div></div>
+        <div id="resReview"></div>
+        <div class="btns">
+          <button class="btn main" id="resNext">Next level</button>
+          <button class="btn main" id="resAgain">Play again</button>
+          <button class="btn" id="resMissed">Practise missed</button>
+          <button class="btn" id="resStudy">Study this level</button>
+          <button class="btn" id="resMenu">Back to levels</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  /* ---------------------------------------------------------------
+     QUESTIONS
+     Q(question, correctAnswer, [wrong, wrong, wrong], explanation)
+     Each gate shows the correct answer plus two random wrong ones.
+     "Add your own questions" on the menu loads other material.
+  --------------------------------------------------------------- */
+  const Q = (q, a, w, e) => ({ q, options: [a, ...w], answer: 0, explain: e });
+  const DECKS = [
+    { id: 'u1a', name: 'Unit 1a: Essentials of a valid marriage', questions: [
+      Q("Customary marriage is best described as:", "Potentially polygamous", ["Strictly monogamous", "Always polygamous", "A purely private contract"], "It permits polygamy, unlike a strictly monogamous Marriage Act union (Hyde v Hyde)."),
+      Q("Which is NOT an essential element of a valid customary marriage?", "A church blessing", ["Capacity of the parties", "Payment of bride price", "Handing over of the bride"], "The four essentials: capacity, bride price, celebration of rites, and handing over of the bride."),
+      Q("Which case is the Court of Appeal's leading restatement of the core requirements?", "Nsirim v Nsirim", ["Omoga v Badejo", "Egri v Uperi", "Alkamawa v Bello"], "Nsirim v Nsirim, with Osamwonyi v Osamwonyi (SC), is the modern restatement."),
+      Q("Under s 21 Child Rights Act 2003, a marriage below what age is void?", "18", ["16", "15", "21"], "Any purported marriage of a person under 18 is null and void."),
+      Q("Why may the s 21 age limit not apply in some states?", "The Act needs state domestication", ["It only covers Muslims", "It was repealed", "It covers statutory marriage only"], "The Act is on the Concurrent List, so states must adopt it for matters within their competence."),
+      Q("Osamwonyi v Osamwonyi held, under Bini custom, that what is necessary?", "Consent of the parties", ["A church ceremony", "A written contract", "Court registration"], "It is the Supreme Court authority that the parties' consent is necessary."),
+      Q("Which case held a valid marriage needs parental consent and mutual agreement?", "Okpanum v Okpanum", ["Omoga v Badejo", "Emeakuana v Umeojiako", "Egri v Uperi"], "Decided by the High Court of the former East Central State."),
+      Q("Courts treat bride price as:", "An essential ingredient", ["A mere formality", "Optional in every system", "Payable in cash only"], "Unless validly waived, no bride price means mere cohabitation, not marriage."),
+      Q("In Emeakuana v Umeojiako, what counted as sufficient bride price?", "Yams", ["Cash only", "Cowries", "A bare promise"], "Courts look to substance: a good-faith transfer of value the bride's family acknowledges."),
+      Q("If bride price exceeds a Limitation of Dowry cap, the marriage is:", "Still valid; excess is capped", ["Void", "Voidable", "Converted to statutory"], "The excess is exposed to the limitation statute, but the marriage itself stands."),
+      Q("Omoga v Badejo requires what under Yoruba custom?", "Formal handing over of the bride", ["Payment in livestock", "Court registration", "Consummation"], "It must happen before both families and witnesses, then she is taken to the husband's house."),
+      Q("Within how many days must a customary marriage be registered?", "60 days", ["30 days", "90 days", "180 days"], "Under the Births, Deaths etc (Compulsory Registration) Act, at the area or customary court."),
+      Q("In court, customary law is treated as:", "A question of fact to be proved", ["A pure question of law", "Always judicially noticed", "Presumed by statute"], "Unless it has been judicially noticed through frequent proof (Oyewumi v Ogunesan).")
+    ]},
+    { id: 'u1b', name: 'Unit 1b: Void, voidable and cohabitation', questions: [
+      Q("A customary rule will not be enforced if it is repugnant to:", "Natural justice and equity", ["Any English statute", "Majority opinion", "State policy"], "That is, natural justice, equity and good conscience, or if incompatible with statute (Adesubokan v Yunusa)."),
+      Q("Alkamawa v Bello held that Islamic law is:", "Distinct from customary law", ["A form of customary law", "Repugnant to equity", "Limited to the North"], "It is a complete universal system, not tied to any tribe or ethnic group."),
+      Q("Which renders a customary marriage void ab initio?", "Unpaid, unwaived bride price", ["Wife's barrenness", "Husband's adultery", "A long separation"], "Void examples: no bride price, no parental consent, prohibited degrees."),
+      Q("A void marriage is:", "Invalid from the outset", ["Valid until annulled", "Ended by custom", "Always registered"], "The defect goes to the root, so it is void ab initio."),
+      Q("A voidable marriage is:", "Valid until a court annuls it", ["Invalid from the outset", "Ended by the families", "Never recognised"], "It stays legally effective until successfully challenged."),
+      Q("Which makes a customary marriage voidable?", "Wife pregnant by another man", ["No bride price", "No parental consent", "Prohibited degree"], "Others: incapacity to consummate, unsound mind, communicable venereal disease."),
+      Q("The Osu marriage prohibition was abolished by:", "Abolition of the Osu System Law", ["The Marriage Act", "Child Rights Act 2003", "Same Sex Marriage Act"], "The 1956 law abolished this Eastern Nigeria custom."),
+      Q("Long cohabitation without bride price generally gives:", "No customary marriage incidents", ["A valid customary marriage", "A statutory marriage", "A voidable marriage"], "Succession and legitimacy rights flow from marriage, not mere cohabitation."),
+      Q("Per Re Caveat by Clara Sackitey, an agreement to live apart:", "Doesn't change legal status", ["Dissolves the marriage", "Turns it into cohabitation", "Needs court approval"], "A valid customary marriage subsists until dissolved by the family."),
+      Q("The only legally recognised marriage in Nigeria is between:", "An adult male and female", ["Any two adults", "A man and several wives", "Two persons of one tribe"], "Under the Same Sex Marriage (Prohibition) Act 2014.")
+    ]},
+    { id: 'u2', name: 'Unit 2: Consummation', questions: [
+      Q("Consummation in customary marriage is:", "First intercourse after the celebration", ["Payment of bride price", "Handing over of the bride", "Registration of the marriage"], "It is done with the intention of completing and perfecting the union."),
+      Q("Handing over is public. Consummation is:", "Private and completes the bond", ["Also public", "A court ceremony", "A statutory step"], "It follows the handing over and is understood to complete the marriage."),
+      Q("Sex before the marriage:", "Cannot consummate it", ["Consummates it automatically", "Counts if children result", "Counts if families agree"], "Only intercourse after the marriage can consummate it."),
+      Q("Which suggests a marriage has not been consummated?", "Bride stays with her own family", ["A child is born", "Bride price is refunded", "Husband marries again"], "Continued residence with her family is strong evidence no full marriage has formed."),
+      Q("Consummation is often the line between marriage and:", "Mere betrothal", ["Void marriage", "Statutory marriage", "Annulment"], "Bride price and handing over can happen early in a long customary process."),
+      Q("Delaying consummation for a minor bride is:", "An informal safeguard only", ["A replacement for s 21", "Legally enforceable", "Required by statute"], "It is variable and unenforceable, unlike s 21 of the Child Rights Act 2003."),
+      Q("Under the Matrimonial Causes Act, wilful refusal to consummate makes a marriage:", "Voidable", ["Void", "Unaffected", "Automatically dissolved"], "Section 15(2) applies to statutory marriages and is litigated in court."),
+      Q("The usual customary result of non-consummation is:", "Informal and familial steps", ["A court nullity decree", "A criminal sanction", "Automatic statutory divorce"], "For example, return of the bride or renegotiating the bride price."),
+      Q("Which evidence helps prove a disputed customary marriage?", "Consummation, cohabitation, children", ["A tax return", "A bank statement", "A church invitation"], "Used as corroboration because customary marriages rarely produce documents."),
+      Q("Is sexual intercourse the only test of whether parties are married?", "No, not the sole test", ["Yes, always", "Yes, in every system", "Only in statutory marriage"], "It is important, but not the sole or universal test.")
+    ]},
+    { id: 'u3a', name: 'Unit 3a: Modes of dissolution and refund', questions: [
+      Q("Okonkwo v Ezeaku held a customary marriage can only be dissolved by:", "Means its own custom recognises", ["Any signed affidavit", "Statutory divorce", "Church annulment"], "It cannot be dissolved by means other than those the applicable custom recognises."),
+      Q("Estrangement of a wife means the marriage is:", "Held in abeyance, not dead", ["Dissolved", "Void", "Converted"], "An affidavit 'dissolving' it did not bar the estranged wife from the estate (Ezeaku v Okonkwo)."),
+      Q("The two modes of dissolving a customary marriage are:", "Non-judicial and judicial", ["Statutory and religious", "Void and voidable", "Civil and criminal"], "Dissolution is first a family matter, and may happen without any court."),
+      Q("Who refunds bride price on dissolution?", "The wife's family", ["The husband's family", "The wife alone", "The Customary Court"], "The refund goes to the husband or his family; once accepted, the marriage stands dissolved."),
+      Q("How must a husband renounce his right to a refund?", "Formally, before both families", ["By private text", "By silence over time", "By affidavit alone"], "Ezeaku v Okonkwo: the marriage is then dissolved and no actual refund is needed."),
+      Q("Can lapse of time alone dissolve a marriage where bride price wasn't refunded?", "No, unless renunciation is proved", ["Yes, after 5 years", "Yes, after 10 years", "Yes, if the wife leaves"], "Customary marriages are not dissolved by wishful thinking or effluxion of time."),
+      Q("If the husband refuses the refund, the wife may:", "Petition the court", ["Remarry anyway", "Do nothing", "Apply under the MCA"], "She asks that the marriage be dissolved and the bride price be paid into court."),
+      Q("When the husband dies, the marriage:", "Continues until bride price is refunded", ["Ends immediately", "Becomes void", "Turns into cohabitation"], "The wife remains a wife of the family, with several options open to her."),
+      Q("Amachree v Goodhead: a child born after the husband's death belongs to:", "The late husband's family", ["The biological father", "The mother's family", "The state"], "The wife continued to belong to the husband's family until the dowry was refunded."),
+      Q("When the wife dies, the husband:", "May marry again", ["May not marry again", "Must refund bride price", "Loses custody"], "Death of the wife ends the marriage, but his in-law obligations may continue."),
+      Q("Okpanum v Okpanum: a husband can end the marriage by:", "Informing his parent-in-law at a meeting", ["A court order only", "Written notice to the registry", "A church letter"], "It is enough to arrange a meeting and duly state his intention.")
+    ]},
+    { id: 'u3b', name: 'Unit 3b: Judicial dissolution, custody, maintenance', questions: [
+      Q("Which court usually dissolves customary marriages?", "The Customary Court", ["Federal High Court", "Supreme Court first", "High Court under the MCA"], "Where a state has none, the Magistrate Court may exercise original jurisdiction."),
+      Q("Grounds for judicial dissolution of a customary marriage are:", "Fluid and not exhaustive", ["Fixed by statute", "Limited to adultery", "Only three"], "They include barrenness, adultery, cruelty, desertion and impotency."),
+      Q("Customary law puts more emphasis on:", "Irretrievable breakdown", ["The husband's fault", "The wife's fault", "The families' fault"], "Breakdown matters more than one spouse's individual blame."),
+      Q("At every stage, customary courts must try to:", "Reconcile the parties", ["Refund bride price", "Award alimony", "Register the marriage"], "Reconciliation is required throughout the proceedings."),
+      Q("Egri v Uperi: full bride price is recoverable only where the wife:", "Has borne no children", ["Has borne children", "Committed adultery", "Left over a year ago"], "Where children were born, the recoverable sum is typically reduced."),
+      Q("Custody on dissolution is now decided increasingly by:", "Child's welfare plus custom", ["Custom alone", "Amount of bride price", "Father's income"], "Reinforced by the paramountcy of welfare in the Child Rights Act 2003."),
+      Q("Post-divorce spousal maintenance under customary law is:", "Not generally recognised", ["Always awarded", "Awarded after 5 years", "Fixed by statute"], "No clear practice exists, and judges are reluctant (Akinsemoyin, Okafor)."),
+      Q("In Adeleke v Adeyinka, alimony was described as:", "A foreign practice", ["A form of dowry", "A crime", "A church rule"], "The court called it a practice of the white man, unknown to customary law."),
+      Q("Child maintenance after divorce is:", "Recognised and enforceable", ["Not recognised", "Paid by the father only", "Available only under the MCA"], "Both parents keep a duty to contribute to welfare, upbringing and education.")
+    ]},
+    { id: 'u4', name: 'Unit 4: Impact of the Matrimonial Causes Act', questions: [
+      Q("The Matrimonial Causes Act governs marriages made under:", "The Marriage Act", ["Native law and custom", "Islamic law", "Any religion"], "Its jurisdiction attaches to statutory marriages."),
+      Q("Which court has jurisdiction under the Act (s 2)?", "The High Court", ["Customary Court", "Magistrate Court", "Area Court"], "Section 2 vests jurisdiction in the High Court."),
+      Q("Jadesimi v Okotie-Eboh: a later statutory marriage between the same parties:", "Converts it to monogamous", ["Is void", "Leaves it polygamous", "Is bigamous"], "The statutory marriage supplements, rather than nullifies, the customary one."),
+      Q("After conversion, the union falls under:", "The MCA regime exclusively", ["Customary law", "Both regimes", "Islamic law"], "It is withdrawn from customary law entirely."),
+      Q("A customary 'marriage' entered during a statutory marriage is:", "Not treated as valid", ["Valid", "Voidable", "Converted to statutory"], "The prior statutory marriage is a complete bar."),
+      Q("A subsisting customary marriage bars:", "A statutory marriage with a third party", ["Another customary marriage", "Registration", "Child custody claims"], "A later statutory marriage in that case is void."),
+      Q("The offence of bigamy applies strictly to:", "Statutory marriages", ["Customary marriages", "Religious blessings", "Cohabitation"], "A customarily married man who takes another wife under custom is not guilty of bigamy."),
+      Q("Nwangwa v Ubani: a church wedding not complying with the Marriage Act is:", "Not a statutory marriage", ["A valid statutory marriage", "Bigamy", "Void for all purposes"], "It may only be a religious blessing of the earlier customary marriage."),
+      Q("Where bigamy is alleged, courts require:", "Strict proof of both marriages", ["Balance of probabilities only", "Oral testimony only", "No proof"], "The allegation amounts in substance to accusing someone of a crime."),
+      Q("Parties to a purely customary marriage cannot use:", "The MCA's divorce and maintenance machinery", ["Customary Courts", "The Child Rights Act", "Bride price refund"], "The Act's relief applies only to statutory marriages."),
+      Q("Which document founds the fuller MCA reliefs?", "A statutory marriage certificate", ["A customary register entry", "A bride price receipt", "A church invitation"], "Courts insist only such a certificate will do."),
+      Q("The note describes Nigerian marriage law as:", "Legal pluralism", ["A single code", "A simple hierarchy", "Purely statutory"], "Customary and statutory systems interact but neither subordinates the other."),
+      Q("Requiring parental consent however old the bride is criticised for:", "Limiting her choice of spouse", ["Raising the marriage age", "Removing bride price", "Voiding all marriages"], "Her own consent becomes immaterial if her parents refuse."),
+      Q("Among the Igbo, a husband and his children may inherit from:", "The deceased wife's property", ["Neither spouse", "Only the husband's estate", "Both equally"], "The wife has no matching right in her deceased husband's property.")
+    ]}
+  ];
+
+
+  const LC = ['#ff6b8b', '#5aa9ff', '#b98cff'];
+  const LN = ['A', 'B', 'C'];
+  const GOOD = '#5ff0a0', BAD = '#ff6b7a', GOLD = '#ffcf4a', MINT = '#6ef0d0';
+  const FONT = '"Fredoka", ui-rounded, system-ui, sans-serif';
+  const F = 5, FAR = 85, CRUISE = 8.5, ZONE_START = 14, ZONE_END = 1, CREEP = .2;
+  const UNLOCK_AT = .8;
+
+  const $ = id => document.getElementById(id);
+  const app = $('app'), canvas = $('c'), ctx = canvas.getContext('2d');
+  const hud = $('hud'), boostBtn = $('boost'), tut = $('tut'), arrows = $('arrows');
+  const menu = $('menu'), studyO = $('study'), pauseO = $('pauseO'), results = $('results');
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rand = n => Math.floor(Math.random() * n);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  function prep(d) { d.questions.forEach((q, i) => { q.id = d.id + ':' + i; }); return d; }
+
+  /* ---------------- Storage ---------------- */
+  let store = { stars: {}, best: {}, seen: false };
+  try { Object.assign(store, JSON.parse(localStorage.getItem('answerrush.v2') || '{}')); } catch (e) {}
+  function save() { try { localStorage.setItem('answerrush.v2', JSON.stringify(store)); } catch (e) {} }
+
+  /* ---------------- Decks and locks ---------------- */
+  const builtIn = DECKS.slice();
+  let decks = DECKS.slice();
+  decks.forEach(prep);
+  const stars = d => store.stars[d.id] || 0;
+  function isUnlocked(i) {
+    const d = decks[i];
+    if (d.custom) return true;
+    const bi = builtIn.indexOf(d);
+    return bi <= 0 || stars(builtIn[bi - 1]) >= 2;
+  }
+  const quickDeck = {
+    id: 'quick', name: 'Quick round',
+    gen: () => shuffle(decks.filter((d, i) => isUnlocked(i)).flatMap(d => d.questions)).slice(0, 12)
+  };
+  const titleOf = d => { const m = d.name.match(/^Unit (\w+): (.*)$/); return m ? m[2] : d.name; };
+  const tagOf = d => { const m = d.name.match(/^Unit (\w+): (.*)$/); return m ? m[1] : '+'; };
+
+  /* ---------------- Sound ---------------- */
+  let ac = null, soundOn = true;
+  function beep(f, d, type, v, slide) {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(f, t);
+      if (slide) o.frequency.linearRampToValueAtTime(f + slide, t + d);
+      g.gain.setValueAtTime(v || .06, t);
+      g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t + d);
+    } catch (e) {}
+  }
+  function sfx(k) {
+    if (k === 'coin') beep(1046, .07, 'triangle', .05);
+    else if (k === 'good') { beep(660, .1, 'triangle', .06); setTimeout(() => beep(990, .14, 'triangle', .06), 80); }
+    else if (k === 'bad') beep(300, .18, 'triangle', .05, -80);
+    else if (k === 'move') beep(340, .04, 'sine', .025);
+    else if (k === 'boost') beep(400, .25, 'sawtooth', .04, 500);
+    else if (k === 'win') [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => beep(f, .2, 'triangle', .07), i * 110));
+  }
+
+  /* ---------------- State ---------------- */
+  let W = 0, H = 0, dpr = 1, horizonY = 0, groundY = 0;
+  let skyGrad = null, starsArr = [], skyline = [];
+  let state = 'menu';   // menu | play | paused | ending
+  let baseDeck = null, practice = false, queue = [], total = 0, answered = 0, correctN = 0, coinsN = 0, log = [];
+  let lane = 1, pl = 1, dist = 0, speed = CRUISE, boostArmed = false, tutStep = 0;
+  let gates = [], coins = [], particles = [], pops = [];
+  let endTimer = null, last = 0, rvFilter = 'all';
+  const st = { deck: null, i: 0, mode: 'cards', hide: false, revealed: false };
+
+  /* ---------------- Text fitting for gate signs ---------------- */
+  function wrapLines(text, w, size, weight) {
+    ctx.font = `${weight} ${size}px ${FONT}`;
+    const words = String(text).split(/\s+/), lines = [];
+    let line = '';
+    for (const wd of words) {
+      if (ctx.measureText(wd).width > w) return null;
+      const t = line ? line + ' ' + wd : wd;
+      if (ctx.measureText(t).width <= w) line = t; else { lines.push(line); line = wd; }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+  function fitText(text, w, h, maxS, minS, weight) {
+    for (let s = maxS; s >= minS; s -= .5) {
+      const ls = wrapLines(text, w, s, weight);
+      if (ls && ls.length * s * 1.2 <= h) return { size: s, lines: ls };
+    }
+    return { size: minS, lines: wrapLines(text, w, minS, weight) || [String(text)] };
+  }
+  function layoutGate(g) {
+    if (g.finish) return;
+    const lw = W / 3;
+    g.tl = {
+      cards: g.lanes.map(o => fitText(o.text, lw * .92 - 18, lw * 1.55 - lw * .42, 17, 10.5, 600)),
+      banner: fitText(g.q.q, W * .98 - 30, lw * .78 - 14, 19, 11.5, 700)
+    };
+  }
+
+  /* ---------------- Layout ---------------- */
+  function layout() {
+    const ar = app.getBoundingClientRect();
+    const hb = hud.getBoundingClientRect().bottom - ar.top;
+    groundY = H - Math.max(18, 0) - 60 - 44;
+    horizonY = Math.max(hb + 36, H * .3);
+    if (groundY - horizonY < H * .3) horizonY = groundY - H * .3;
+    tut.style.top = (hb + 10) + 'px';
+    arrows.style.top = ((horizonY + groundY) / 2 - 30) + 'px';
+    skyGrad = ctx.createLinearGradient(0, 0, 0, horizonY);
+    skyGrad.addColorStop(0, '#170f3d'); skyGrad.addColorStop(.55, '#5a2a86'); skyGrad.addColorStop(1, '#ff8a70');
+    starsArr = Array.from({ length: 46 }, () => ({ x: Math.random() * W, y: Math.random() * horizonY * .75, r: 1 + Math.random() * 1.6, ph: Math.random() * 6 }));
+    skyline = [];
+    for (let x = -10; x < W + 10;) { const w = 16 + Math.random() * 32, h = 10 + Math.random() * H * .06; skyline.push({ x, w, h }); x += w + Math.random() * 6; }
+    gates.forEach(layoutGate);
+  }
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const r = app.getBoundingClientRect();
+    W = r.width; H = r.height;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    layout();
+  }
+
+  const P = d => F / (F + d);
+  const Y = p => horizonY + (groundY - horizonY) * p;
+  const X = (ln, p) => W / 2 + (ln - 1) * (W / 3) * p;
+
+  /* ---------------- HUD / tutorial ---------------- */
+  function updateHud() {
+    $('coins').textContent = coinsN;
+    $('qn').textContent = `${Math.min(answered + 1, total)} / ${total}`;
+    $('prog').style.width = (total ? answered / total * 100 : 0) + '%';
+  }
+  function setTut(step) {
+    tutStep = step;
+    tut.classList.toggle('on', step > 0);
+    arrows.classList.toggle('on', step === 1);
+    if (step === 1) tut.textContent = 'Tap the left or right side of the screen to switch lanes.';
+    if (step === 2) tut.textContent = 'Stand in the lane with the answer you think is right, then tap Boost.';
+  }
+  function endTut() { if (tutStep) { setTut(0); store.seen = true; save(); } }
+
+  /* ---------------- Run control ---------------- */
+  function startRun(base, opts) {
+    opts = opts || {};
+    baseDeck = base;
+    practice = !!opts.practice || base.id === 'quick';
+    const qs = opts.subset || (base.gen ? base.gen() : base.questions);
+    queue = shuffle(qs.slice());
+    total = queue.length; answered = 0; correctN = 0; coinsN = 0; log = [];
+    lane = 1; pl = 1; speed = CRUISE; boostArmed = false;
+    gates = []; coins = []; particles = []; pops = [];
+    clearTimeout(endTimer);
+    [menu, studyO, results, pauseO].forEach(o => o.classList.remove('show'));
+    hud.classList.remove('off'); boostBtn.classList.remove('off');
+    boostBtn.textContent = 'Boost'; boostBtn.classList.remove('armed', 'nudge');
+    resize();
+    state = 'play';
+    updateHud();
+    spawnQuestion(true);
+    setTut(store.seen ? 0 : 1);
+  }
+
+  function toMenu() {
+    clearTimeout(endTimer);
+    state = 'menu';
+    setTut(0);
+    hud.classList.add('off'); boostBtn.classList.add('off');
+    [studyO, pauseO, results].forEach(o => o.classList.remove('show'));
+    gates = []; coins = [];
+    renderMenu();
+    menu.classList.add('show');
+  }
+
+  function pauseGame(on) {
+    if (on && state === 'play') { state = 'paused'; pauseO.classList.add('show'); }
+    else if (!on && state === 'paused') { state = 'play'; pauseO.classList.remove('show'); }
+  }
+
+  function moveLane(dn) {
+    if (state !== 'play') return;
+    const nl = clamp(lane + dn, 0, 2);
+    if (nl === lane) return;
+    lane = nl; sfx('move');
+    if (tutStep === 1) setTut(2);
+  }
+
+  function armBoost() {
+    if (state !== 'play' || boostArmed) return;
+    boostArmed = true;
+    boostBtn.textContent = 'Go go go!'; boostBtn.classList.add('armed'); boostBtn.classList.remove('nudge');
+    sfx('boost');
+    if (tutStep) endTut();
+  }
+
+  /* ---------------- Spawning ---------------- */
+  function spawnQuestion(first) {
+    const q = queue[answered];
+    const wrong = shuffle(q.options.map((t, i) => ({ t, i })).filter(o => o.i !== q.answer)).slice(0, 2);
+    const opts = shuffle([{ text: q.options[q.answer], correct: true }, ...wrong.map(o => ({ text: o.t, correct: false }))]);
+    const g = { d: first ? 60 : 46, lanes: opts, q, passed: false, chosen: -1 };
+    layoutGate(g);
+    gates.push(g);
+    spawnCoins(9, g.d - 18);
+  }
+
+  function spawnCoins(from, to) {
+    const pat = rand(3), l0 = rand(3);
+    for (let d = from, i = 0; d < to; d += 3.4, i++) {
+      const l = pat === 0 ? l0 : pat === 1 ? [0, 1, 2, 1][i % 4] : (Math.floor(i / 3) + l0) % 3;
+      coins.push({ d, lane: l, done: false, got: false });
+    }
+  }
+
+  function startFinish() {
+    gates.push({ finish: true, d: 40, passed: false });
+    spawnCoins(9, 30);
+  }
+
+  /* ---------------- Gameplay ---------------- */
+  const activeGate = () => gates.find(g => !g.finish && !g.passed);
+
+  function targetSpeed() {
+    let sp = CRUISE;
+    const g = activeGate();
+    if (g && g.d < ZONE_START) {
+      if (g.d <= ZONE_END) sp = CREEP;
+      else { const t = clamp((g.d - ZONE_END) / (ZONE_START - ZONE_END), 0, 1); sp = .9 + (CRUISE - .9) * t * t; }
+    }
+    if (boostArmed) sp = Math.max(sp * 1.6, 10);
+    return sp;
+  }
+
+  function popup(x, y, t, c, size) { pops.push({ x, y, t, c, size: size || 18, age: 0 }); }
+  function burst(x, y, c, n, sp) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = sp * (.3 + Math.random() * .7);
+      particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - sp * .4, life: .7 + Math.random() * .5, age: 0, c, r: 2 + Math.random() * 3 });
+    }
+  }
+
+  function passGate(g) {
+    g.chosen = lane;
+    const o = g.lanes[lane], q = g.q;
+    answered++;
+    if (o.correct) correctN++;
+    log.push({ q, yours: o.text, ok: o.correct });
+    coinsN += 50;                                   // same prize, right or wrong
+    const gx = X(lane, 1), gy = groundY - W * .3;
+    burst(gx, gy, o.correct ? GOOD : '#9a94b8', 22, 300);
+    popup(gx, gy - 10, o.correct ? '\u2713' : '\u2717', o.correct ? GOOD : BAD, 40);
+    popup(gx, gy + 34, '+50', GOLD, 20);
+    sfx(o.correct ? 'good' : 'bad');
+    boostArmed = false; boostBtn.textContent = 'Boost'; boostBtn.classList.remove('armed');
+    if (tutStep) endTut();
+    updateHud();
+    if (answered >= total) startFinish(); else spawnQuestion(false);
+  }
+
+  function collectCoin(c) {
+    c.got = true; coinsN += 10;
+    popup(X(c.lane, 1), groundY - W * .22, '+10', GOLD, 15);
+    burst(X(c.lane, 1), groundY - W * .12, GOLD, 5, 140);
+    sfx('coin'); updateHud();
+  }
+
+  function finishRun() {
+    for (let i = 0; i < 90; i++) {
+      particles.push({ x: Math.random() * W, y: -10 - Math.random() * 60, vx: (Math.random() - .5) * 120, vy: 80 + Math.random() * 200, life: 2.2, age: 0, c: [GOLD, '#ff6b8b', '#5aa9ff', '#b98cff', MINT][rand(5)], r: 3 + Math.random() * 3 });
+    }
+    sfx('win');
+    state = 'ending';
+    boostBtn.classList.add('off');
+    endTimer = setTimeout(showResults, 1500);
+  }
+
+  function update(dt) {
+    speed += (targetSpeed() - speed) * Math.min(1, dt * (boostArmed ? 8 : 3.5));
+    const sp = speed;
+    dist += sp * dt;
+    pl += (lane - pl) * Math.min(1, dt * 16);
+    for (const g of gates) {
+      g.d -= sp * dt;
+      if (!g.passed && g.d <= 0 && state === 'play') {
+        g.passed = true;
+        if (g.finish) finishRun(); else passGate(g);
+      }
+    }
+    gates = gates.filter(g => g.d > -2.4);
+    for (const c of coins) {
+      c.d -= sp * dt;
+      if (!c.done && c.d <= 0) { c.done = true; if (c.lane === lane && state === 'play') collectCoin(c); }
+    }
+    coins = coins.filter(c => c.d > -2.4 && !c.got);
+    const g = activeGate();
+    if (g) {
+      if (tutStep === 1 && g.d < 22) setTut(2);
+      boostBtn.classList.toggle('nudge', !boostArmed && g.d < 12);
+    }
+  }
+
+  function stepFx(dt) {
+    for (const p of particles) { p.age += dt; p.vy += 620 * dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+    particles = particles.filter(p => p.age < p.life);
+    for (const p of pops) p.age += dt;
+    pops = pops.filter(p => p.age < 1.1);
+  }
+
+  /* ---------------- Results and review ---------------- */
+  function qaHtml(items) {
+    if (!items.length) return '<p class="none">Nothing to show here.</p>';
+    return '<ul class="qa">' + items.map(it =>
+      `<li class="${it.status || ''}">${it.status ? `<span class="mark">${it.status === 'ok' ? '\u2713' : '\u2717'}</span>` : ''}<div><b>${esc(it.q)}</b>` +
+      (it.yours ? `<div class="yours">Your answer: ${esc(it.yours)}</div>` : '') +
+      `<div class="ca">Answer: ${esc(it.a)}</div>` +
+      (it.e ? `<div class="ex">${esc(it.e)}</div>` : '') + '</div></li>').join('') + '</ul>';
+  }
+
+  function renderReview() {
+    const items = log.map(l => ({ q: l.q.q, a: l.q.options[l.q.answer], e: l.q.explain, status: l.ok ? 'ok' : 'bad', yours: l.ok ? '' : l.yours }));
+    const shown = rvFilter === 'missed' ? items.filter(i => i.status === 'bad') : items;
+    $('resReview').innerHTML = qaHtml(shown);
+    $('rvChips').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.f === rvFilter));
+  }
+
+  function showResults() {
+    const acc = total ? correctN / total : 0, pct = Math.round(acc * 100);
+    const st3 = acc >= .9 ? 3 : acc >= UNLOCK_AT ? 2 : acc >= .5 ? 1 : 0;
+    const bi = builtIn.indexOf(baseDeck);
+    let unlockedNext = false;
+    if (!practice) {
+      if (st3 > stars(baseDeck)) store.stars[baseDeck.id] = st3;
+      if (pct > (store.best[baseDeck.id] || 0)) store.best[baseDeck.id] = pct;
+      save();
+    }
+    if (!practice && bi >= 0 && bi < builtIn.length - 1 && st3 >= 2) unlockedNext = true;
+    $('resTitle').textContent = practice ? 'Practice done' : st3 >= 2 ? 'Level cleared!' : 'Nice run';
+    $('resStars').innerHTML = practice ? '' : '\u2605'.repeat(st3) + '<i>' + '\u2605'.repeat(3 - st3) + '</i>';
+    $('resSub').textContent = `You got ${correctN} of ${total} right (${pct}%).`;
+    $('resStats').innerHTML = [[coinsN, 'Coins'], [`${correctN}/${total}`, 'Correct'], [pct + '%', 'Accuracy']]
+      .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+    const un = $('resUnlock');
+    if (practice) { un.style.display = 'none'; }
+    else {
+      un.style.display = 'block';
+      if (unlockedNext) { un.className = 'unlock yes'; un.textContent = 'Next level unlocked!'; }
+      else if (st3 >= 2) { un.className = 'unlock yes'; un.textContent = 'You cleared this level.'; }
+      else { un.className = 'unlock no'; un.textContent = 'Score 80% or more to unlock the next level. Review your answers, then try again.'; }
+    }
+    rvFilter = log.some(l => !l.ok) ? 'missed' : 'all';
+    renderReview();
+    const missedN = log.filter(l => !l.ok).length;
+    $('resMissed').style.display = missedN ? 'block' : 'none';
+    $('resMissed').textContent = `Practise missed (${missedN})`;
+    $('resNext').style.display = unlockedNext ? 'block' : 'none';
+    $('resAgain').className = 'btn' + (unlockedNext ? '' : ' main');
+    $('resStudy').style.display = baseDeck.gen ? 'none' : 'block';
+    hud.classList.add('off'); boostBtn.classList.add('off');
+    results.classList.add('show');
+    results.querySelector('.sheet').scrollTop = 0;
+  }
+
+  /* ---------------- Study screen ---------------- */
+  function openStudy(d) {
+    st.deck = d; st.i = 0; st.mode = 'cards'; st.revealed = false;
+    $('stTitle').textContent = titleOf(d);
+    [menu, results].forEach(o => o.classList.remove('show'));
+    studyO.classList.add('show');
+    renderStudy();
+  }
+  function renderStudy() {
+    const d = st.deck, qs = d.questions, n = qs.length;
+    $('stSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === st.mode));
+    const idx = decks.indexOf(d), ok = isUnlocked(idx);
+    $('stStart').disabled = !ok;
+    $('stStart').textContent = ok ? 'Start level' : 'Locked: get 80% on the level before';
+    if (st.mode === 'all') {
+      $('stBody').innerHTML = qaHtml(qs.map(q => ({ q: q.q, a: q.options[q.answer], e: q.explain })));
+      return;
+    }
+    const q = qs[st.i], show = !st.hide || st.revealed;
+    $('stBody').innerHTML =
+      `<div class="scard"><div class="scount">Question ${st.i + 1} of ${n}</div><p class="sq">${esc(q.q)}</p>` +
+      (show ? `<div class="sa"><small>Answer</small><b>${esc(q.options[q.answer])}</b>${q.explain ? `<div>${esc(q.explain)}</div>` : ''}</div>`
+            : '<button class="btn" data-a="reveal">Show answer</button>') + '</div>' +
+      `<div class="navrow"><button class="btn" data-a="prev" ${st.i === 0 ? 'disabled' : ''}>Previous</button><button class="btn" data-a="next" ${st.i === n - 1 ? 'disabled' : ''}>Next</button></div>` +
+      `<label class="chk"><input type="checkbox" data-a="hide" ${st.hide ? 'checked' : ''}> Hide answers so I can test myself</label>`;
+  }
+
+  /* ---------------- Drawing ---------------- */
+  function poly(x1, y1, x2, y2, x3, y3, x4, y4) {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x4, y4); ctx.closePath(); ctx.fill();
+  }
+  function rr(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  const drawables = [];
+
+  function drawRoad() {
+    const cx = W / 2, BAND = 4;
+    const w0 = Math.floor(dist / BAND) * BAND - BAND;
+    for (let w = w0; w - dist < FAR; w += BAND) {
+      const da = Math.max(w - dist, -2.2), db = w + BAND - dist;
+      if (db <= -2.2) continue;
+      const pa = P(da), pb = P(db), ya = Y(pa), yb = Y(pb);
+      const idx = Math.floor(w / BAND), even = (idx & 1) === 0;
+      ctx.fillStyle = even ? '#2f2a55' : '#38326a';
+      poly(cx - W / 2 * pa, ya, cx + W / 2 * pa, ya, cx + W / 2 * pb, yb, cx - W / 2 * pb, yb);
+      const cw = W * .08;
+      ctx.fillStyle = even ? '#ff8fa3' : '#fff4ea';
+      poly(cx - (W / 2 + cw) * pa, ya, cx - W / 2 * pa, ya, cx - W / 2 * pb, yb, cx - (W / 2 + cw) * pb, yb);
+      poly(cx + W / 2 * pa, ya, cx + (W / 2 + cw) * pa, ya, cx + (W / 2 + cw) * pb, yb, cx + W / 2 * pb, yb);
+      if (even) {
+        ctx.fillStyle = 'rgba(255,244,234,.7)';
+        for (const s of [-1, 1]) {
+          const bx = W / 6 * s, hw = W * .007;
+          poly(cx + (bx - hw) * pa, ya, cx + (bx + hw) * pa, ya, cx + (bx + hw) * pb, yb, cx + (bx - hw) * pb, yb);
+        }
+      }
+      if (idx % 3 === 0 && w - dist > -1.5) drawables.push({ d: w - dist, k: 'pillar' });
+    }
+  }
+
+  function drawPillar(d) {
+    const p = P(d); if (p < .03) return;
+    const y = Y(p);
+    for (const s of [-1, 1]) {
+      const x = W / 2 + s * (W / 2 + W * .17) * p, h = W * .4 * p, w = W * .018 * p + 1;
+      ctx.fillStyle = '#4a3a86'; ctx.fillRect(x - w / 2, y - h, w, h);
+      ctx.fillStyle = '#ffd9a0'; ctx.shadowColor = '#ffb36b'; ctx.shadowBlur = 10 * p;
+      ctx.beginPath(); ctx.arc(x, y - h, W * .03 * p + 1, 0, 6.3); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  function drawLines(tl, cx, top, areaH, p) {
+    const lh = tl.size * 1.2 * p, total = tl.lines.length * lh;
+    let y = top + (areaH - total) / 2 + lh / 2;
+    ctx.font = `600 ${tl.size * p}px ${FONT}`;
+    for (const line of tl.lines) { ctx.fillText(line, cx, y); y += lh; }
+  }
+
+  function drawGate(g) {
+    const p = P(g.d); if (p < .04 || p > 2.4) return;
+    const yb = Y(p);
+    if (g.finish) {
+      const hw = W / 2 * p, top = yb - W * .55 * p, bh = W * .14 * p, cols = 14, cw = hw * 2 / cols;
+      ctx.fillStyle = '#fff4ea';
+      ctx.fillRect(W / 2 - hw - W * .015 * p, top, W * .03 * p, W * .55 * p);
+      ctx.fillRect(W / 2 + hw - W * .015 * p, top, W * .03 * p, W * .55 * p);
+      for (let r = 0; r < 2; r++) for (let c = 0; c < cols; c++) {
+        ctx.fillStyle = (r + c) % 2 ? '#170f3d' : '#fff4ea';
+        ctx.fillRect(W / 2 - hw + c * cw, top + r * bh / 2, cw + .5, bh / 2 + .5);
+      }
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `700 ${W * .1 * p}px ${FONT}`;
+      ctx.fillText('Finish', W / 2, top + bh + W * .08 * p);
+      return;
+    }
+    const lw = W / 3 * p, cardW = lw * .92, cardH = lw * 1.55, gap = lw * .05, bannerH = lw * .78;
+    const cardTop = yb - cardH, bannerTop = cardTop - gap - bannerH, bannerW = W * p * .98;
+    const textOn = clamp((p - .42) / .18, 0, 1);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+    // posts
+    ctx.fillStyle = '#fff4ea';
+    for (const s of [-1, 1]) ctx.fillRect(W / 2 + s * W / 2 * p - lw * .05, bannerTop, lw * .1, yb - bannerTop);
+
+    // question banner
+    rr(W / 2 - bannerW / 2, bannerTop, bannerW, bannerH, 16 * p);
+    ctx.fillStyle = 'rgba(23,15,61,.94)'; ctx.fill();
+    ctx.lineWidth = Math.max(1.5, 3 * p); ctx.strokeStyle = '#fff4ea'; ctx.stroke();
+    ctx.fillStyle = '#fff';
+    if (textOn > 0 && g.tl) {
+      ctx.globalAlpha = textOn;
+      const b = g.tl.banner, lh = b.size * 1.2 * p;
+      let y = bannerTop + (bannerH - b.lines.length * lh) / 2 + lh / 2;
+      ctx.font = `700 ${b.size * p}px ${FONT}`;
+      for (const line of b.lines) { ctx.fillText(line, W / 2, y); y += lh; }
+      ctx.globalAlpha = 1;
+    }
+    if (textOn < 1) { ctx.globalAlpha = 1 - textOn; ctx.font = `700 ${bannerH * .6}px ${FONT}`; ctx.fillText('?', W / 2, bannerTop + bannerH / 2); ctx.globalAlpha = 1; }
+
+    // answer cards
+    for (let i = 0; i < 3; i++) {
+      if (g.passed && g.chosen === i) continue;
+      const col = LC[i], cx = X(i, p), x0 = cx - cardW / 2, here = i === lane && !g.passed;
+      ctx.save();
+      if (here) { ctx.shadowColor = col; ctx.shadowBlur = 22 * p; }
+      rr(x0, cardTop, cardW, cardH, 14 * p);
+      ctx.fillStyle = 'rgba(23,15,61,.88)'; ctx.fill();
+      ctx.globalAlpha = here ? .5 : .2; ctx.fillStyle = col; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.lineWidth = Math.max(1.5, (here ? 5 : 3) * p); ctx.strokeStyle = col; ctx.stroke();
+      ctx.restore();
+      // letter chip
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(cx, cardTop + lw * .17, lw * .1, 0, 6.3); ctx.fill();
+      ctx.fillStyle = '#170f3d'; ctx.font = `700 ${lw * .13}px ${FONT}`; ctx.fillText(LN[i], cx, cardTop + lw * .17 + 1);
+      // answer text
+      ctx.fillStyle = '#fff';
+      if (textOn > 0 && g.tl) {
+        ctx.globalAlpha = textOn;
+        ctx.save(); rr(x0 + 3, cardTop + lw * .3, cardW - 6, cardH - lw * .34, 8 * p); ctx.clip();
+        drawLines(g.tl.cards[i], cx, cardTop + lw * .34, cardH - lw * .4, p);
+        ctx.restore(); ctx.globalAlpha = 1;
+      }
+      if (textOn < 1) { ctx.globalAlpha = 1 - textOn; ctx.fillStyle = '#fff'; ctx.font = `700 ${cardH * .4}px ${FONT}`; ctx.fillText(LN[i], cx, cardTop + cardH * .58); ctx.globalAlpha = 1; }
+    }
+  }
+
+  function drawCoin(c, now) {
+    const p = P(c.d); if (p < .04) return;
+    const x = X(c.lane, p), y = Y(p), r = W * .04 * p;
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.ellipse(x, y, r, r * .3, 0, 0, 6.3); ctx.fill();
+    const sq = Math.abs(Math.cos(now / 260 + c.d * .8)) * .8 + .2;
+    ctx.fillStyle = GOLD; ctx.strokeStyle = '#c98a1e'; ctx.lineWidth = Math.max(1, 2 * p);
+    ctx.beginPath(); ctx.ellipse(x, y - W * .09 * p, r * sq, r, 0, 0, 6.3); ctx.fill(); ctx.stroke();
+  }
+
+  function drawPlayer(now) {
+    const r = W * .075, px = X(pl, 1);
+    const run = state === 'play' || state === 'menu' || state === 'ending';
+    const t = now / 1000 * (6 + speed * .6);
+    const bounce = run ? Math.abs(Math.sin(t)) * r * .3 : 0;
+    ctx.save();
+    ctx.translate(px, groundY);
+    ctx.rotate(clamp((lane - pl) * .18, -.3, .3));
+    ctx.fillStyle = 'rgba(0,0,0,.3)';
+    ctx.beginPath(); ctx.ellipse(0, 2, r * .95 * (1 - bounce / (r * 3)), r * .28, 0, 0, 6.3); ctx.fill();
+    const s = run ? Math.sin(t) : 0;
+    ctx.fillStyle = '#1d1547';
+    ctx.beginPath(); ctx.ellipse(-r * .4, -r * .14 - Math.max(0, s) * r * .32, r * .24, r * .17, 0, 0, 6.3); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(r * .4, -r * .14 - Math.max(0, -s) * r * .32, r * .24, r * .17, 0, 0, 6.3); ctx.fill();
+    const cy = -r * 1.05 - bounce;
+    ctx.save();
+    if (boostArmed) { ctx.shadowColor = GOLD; ctx.shadowBlur = 24; }
+    ctx.fillStyle = MINT;
+    ctx.beginPath(); ctx.ellipse(0, cy, r * .98, r * 1.05, 0, 0, 6.3); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(-r * .38, cy - r * .55, r * .22, r * .12, -.5, 0, 6.3); ctx.fill();
+    const blink = (now % 3200) < 120, look = clamp((lane - pl) * 3, -1, 1) * r * .08;
+    for (const ex of [-r * .34, r * .34]) {
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.ellipse(ex, cy - r * .12, r * .25, blink ? r * .04 : r * .29, 0, 0, 6.3); ctx.fill();
+      if (!blink) { ctx.fillStyle = '#170f3d'; ctx.beginPath(); ctx.arc(ex + look, cy - r * .16, r * .12, 0, 6.3); ctx.fill(); }
+    }
+    ctx.strokeStyle = '#170f3d'; ctx.lineWidth = Math.max(2, r * .08); ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0, cy + r * .2, r * .24, .15 * Math.PI, .85 * Math.PI); ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(now) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, horizonY + 1);
+    for (const s of starsArr) { ctx.globalAlpha = .4 + .6 * Math.abs(Math.sin(now / 900 + s.ph)); ctx.fillStyle = '#fff'; ctx.fillRect(s.x, s.y, s.r, s.r); }
+    ctx.globalAlpha = 1;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, horizonY); ctx.clip();
+    ctx.fillStyle = '#ffc27a'; ctx.beginPath(); ctx.arc(W / 2, horizonY, W * .2, 0, 6.3); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#2a1656';
+    for (const b of skyline) ctx.fillRect(b.x, horizonY - b.h, b.w, b.h);
+    ctx.fillStyle = '#24123f'; ctx.fillRect(-20, horizonY, W + 40, H - horizonY + 20);
+
+    drawables.length = 0;
+    drawRoad();
+
+    // Glow strip for the lane you are standing in
+    if (state !== 'menu') {
+      ctx.save(); ctx.globalAlpha = .16; ctx.fillStyle = LC[lane];
+      const pn = P(-2.2), pf = P(FAR);
+      poly(X(pl, pn) - W / 6 * pn, Y(pn), X(pl, pn) + W / 6 * pn, Y(pn), X(pl, pf) + W / 6 * pf, Y(pf), X(pl, pf) - W / 6 * pf, Y(pf));
+      ctx.restore();
+    }
+
+    for (const g of gates) if (g.d < FAR) drawables.push({ d: g.d, k: 'g', o: g });
+    for (const c of coins) if (!c.got && c.d < FAR) drawables.push({ d: c.d, k: 'c', o: c });
+    drawables.push({ d: 0, k: 'p' });
+    drawables.sort((a, b) => b.d - a.d);
+    for (const e of drawables) {
+      if (e.k === 'pillar') drawPillar(e.d);
+      else if (e.k === 'g') drawGate(e.o);
+      else if (e.k === 'c') drawCoin(e.o, now);
+      else drawPlayer(now);
+    }
+
+    // Speed lines while boosting
+    if (boostArmed && state === 'play') {
+      ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 2;
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2 + now / 3000, r0 = W * (.25 + ((now / 300 + i * .37) % 1) * .3);
+        ctx.beginPath(); ctx.moveTo(W / 2 + Math.cos(a) * r0, horizonY + 40 + Math.sin(a) * r0 * .7);
+        ctx.lineTo(W / 2 + Math.cos(a) * (r0 + 40), horizonY + 40 + Math.sin(a) * (r0 + 40) * .7); ctx.stroke();
+      }
+    }
+
+    for (const p of particles) {
+      ctx.globalAlpha = clamp(1 - p.age / p.life, 0, 1);
+      ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.3); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const p of pops) {
+      ctx.globalAlpha = clamp(1.1 - p.age, 0, 1);
+      ctx.font = `700 ${p.size}px ${FONT}`;
+      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(23,15,61,.8)'; ctx.fillStyle = p.c;
+      const px = clamp(p.x, 40, W - 40), py = p.y - p.age * 46;
+      ctx.strokeText(p.t, px, py); ctx.fillText(p.t, px, py);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000 || 0);
+    last = now;
+    if (state === 'play') update(dt);
+    else if (state === 'menu') { dist += 5 * dt; pl += (1 - pl) * .1; }
+    else if (state === 'ending') dist += 3 * dt;
+    if (state !== 'paused') stepFx(dt);
+    draw(now);
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------------- Input ---------------- */
+  let tx = 0, ty = 0, tOn = false;
+  function tapOrSwipe(x, y) {
+    const dx = x - tx, dy = y - ty;
+    if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) moveLane(dx > 0 ? 1 : -1);
+    else { const left = canvas.getBoundingClientRect().left; moveLane(x - left < W / 2 ? -1 : 1); }
+  }
+  canvas.addEventListener('touchstart', e => { const t = e.changedTouches[0]; tx = t.clientX; ty = t.clientY; tOn = true; e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+  canvas.addEventListener('touchend', e => { if (!tOn) return; tOn = false; const t = e.changedTouches[0]; tapOrSwipe(t.clientX, t.clientY); e.preventDefault(); }, { passive: false });
+  canvas.addEventListener('mousedown', e => { tx = e.clientX; ty = e.clientY; tapOrSwipe(e.clientX, e.clientY); });
+
+  window.addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('textarea, input')) return;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); moveLane(-1); }
+    else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); moveLane(1); }
+    else if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); armBoost(); }
+    else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') { pauseGame(state === 'play'); }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(true); });
+
+  /* ---------------- Menus ---------------- */
+  function renderMenu() {
+    $('levels').innerHTML = decks.map((d, i) => {
+      const un = isUnlocked(i), s = stars(d);
+      const prev = !d.custom && builtIn.indexOf(d) > 0 ? titleOf(builtIn[builtIn.indexOf(d) - 1]) : '';
+      return `<div class="level ${un ? '' : 'locked'}"><div class="lvtop"><span class="tag">${esc(tagOf(d))}</span>` +
+        `<span class="lvb"><b>${esc(titleOf(d))}</b><small>${d.questions.length} questions${un ? '' : ' \u00B7 locked'}</small></span>` +
+        `<span class="stars" aria-label="${s} of 3 stars">${'\u2605'.repeat(s)}<i>${'\u2605'.repeat(3 - s)}</i></span></div>` +
+        `<div class="lvbtns"><button class="sm" data-act="study" data-i="${i}">Study</button>` +
+        `<button class="sm play" data-act="play" data-i="${i}" ${un ? '' : 'disabled'}>${un ? 'Play' : 'Locked'}</button></div>` +
+        (un ? '' : `<p class="hintline">Score 80% on ${esc(prev)} to unlock. You can still study it now.</p>`) + '</div>';
+    }).join('');
+  }
+  $('levels').addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]'); if (!b) return;
+    const d = decks[+b.dataset.i];
+    if (b.dataset.act === 'study') openStudy(d);
+    else if (isUnlocked(+b.dataset.i)) startRun(d);
+  });
+  $('quick').addEventListener('click', () => startRun(quickDeck));
+
+  // Study screen
+  $('stBack').addEventListener('click', toMenu);
+  $('stSeg').addEventListener('click', e => { const b = e.target.closest('button[data-m]'); if (b) { st.mode = b.dataset.m; renderStudy(); } });
+  $('stStart').addEventListener('click', () => { if (!$('stStart').disabled) startRun(st.deck); });
+  $('stBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const a = b.dataset.a, n = st.deck.questions.length;
+    if (a === 'next' && st.i < n - 1) { st.i++; st.revealed = false; }
+    else if (a === 'prev' && st.i > 0) { st.i--; st.revealed = false; }
+    else if (a === 'reveal') st.revealed = true;
+    else if (a === 'hide') { st.hide = b.checked; st.revealed = false; }
+    renderStudy();
+  });
+
+  $('loadOwn').addEventListener('click', () => {
+    const err = $('ownErr'); err.textContent = '';
+    try {
+      let data;
+      try { data = JSON.parse($('ownJson').value.trim()); } catch (_) { throw new Error('That is not valid JSON.'); }
+      let name = 'Your questions', qs = data;
+      if (data && !Array.isArray(data) && Array.isArray(data.questions)) { name = data.name || name; qs = data.questions; }
+      if (!Array.isArray(qs) || !qs.length) throw new Error('Expected a list of questions.');
+      qs.forEach((q, i) => {
+        const ok = q && Array.isArray(q.options) && q.options.length >= 3 && q.options.length <= 6 && q.options.every(o => typeof o === 'string');
+        if (!q || typeof q.q !== 'string' || !ok || !Number.isInteger(q.answer) || q.answer < 0 || q.answer >= q.options.length) {
+          throw new Error(`Question ${i + 1} needs "q", at least 3 "options", and an "answer" index.`);
+        }
+      });
+      const d = prep({ id: 'own' + Date.now(), custom: true, name: String(name), questions: qs.map(q => ({ q: q.q, options: q.options.slice(), answer: q.answer, explain: typeof q.explain === 'string' ? q.explain : '' })) });
+      decks.push(d);
+      startRun(d);
+    } catch (e) { err.textContent = e.message; }
+  });
+
+  boostBtn.addEventListener('click', armBoost);
+  $('pauseBtn').addEventListener('click', () => pauseGame(true));
+  $('resume').addEventListener('click', () => pauseGame(false));
+  $('quit').addEventListener('click', toMenu);
+  $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; $('soundBtn').textContent = soundOn ? 'Sound on' : 'Sound off'; });
+
+  // Results actions
+  $('rvChips').addEventListener('click', e => { const b = e.target.closest('button[data-f]'); if (b) { rvFilter = b.dataset.f; renderReview(); } });
+  $('resAgain').addEventListener('click', () => startRun(baseDeck));
+  $('resMissed').addEventListener('click', () => startRun(baseDeck, { subset: log.filter(l => !l.ok).map(l => l.q), practice: true }));
+  $('resNext').addEventListener('click', () => { const bi = builtIn.indexOf(baseDeck); if (bi >= 0 && bi < builtIn.length - 1) startRun(builtIn[bi + 1]); });
+  $('resStudy').addEventListener('click', () => openStudy(baseDeck));
+  $('resMenu').addEventListener('click', toMenu);
+  window.addEventListener('resize', resize);
+
+  try { if (window.top !== window.self) $('exitLink').hidden = false; } catch (e) { $('exitLink').hidden = false; }
+  renderMenu();
+  resize();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { gates.forEach(layoutGate); });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
